@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: GlanceChatBackend
+  mongodb:
+    username: root
+    password: 1234
+    authentication-database: admin
+    host: localhost
+    port: 27017
+    database: glance_chat_db
+  mvc:
+    problemdetails:
+      enabled: true
