@@ -32,6 +32,8 @@ public class User {
     @Indexed(unique = true)
     private String email;
 
+    private String password;
+
     /**
      * Nombre visible en conversaciones (username / display name).
      */
