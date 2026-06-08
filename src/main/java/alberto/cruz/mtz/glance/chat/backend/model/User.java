@@ -32,7 +32,9 @@ public class User {
     @Indexed(unique = true)
     private String email;
 
-    private String password;
+    @Field("public_id")
+    private String publicId;
+
 
     /**
      * Nombre visible en conversaciones (username / display name).
@@ -60,4 +62,11 @@ public class User {
     @LastModifiedDate
     @Field("updated_at")
     private Instant updatedAt;
+
+    public static User create(String email) {
+        return User.builder()
+                .email(email)
+                .displayName(email.split("@")[0]) // Por defecto, el display name es la parte antes del @
+                .build();
+    }
 }
