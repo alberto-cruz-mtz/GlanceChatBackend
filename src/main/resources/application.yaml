@@ -2,12 +2,17 @@ spring:
   application:
     name: GlanceChatBackend
   mongodb:
-    username: root
-    password: 1234
+    username: ${MONGO_USERNAME:root}
+    password: ${MONGO_PASSWORD:1234}
+    host: ${MONGO_HOST:localhost}
+    port: ${MONGO_PORT:27017}
+    database: ${MONGO_DATABASE:glance_chat}
     authentication-database: admin
-    host: localhost
-    port: 27017
-    database: glance_chat_db
   mvc:
     problemdetails:
       enabled: true
+
+jwt:
+  secret: ${JWT_SECRET:your_jwt_secret_key}
+  expiration: ${JWT_EXPIRATION:3600000} # 1 hour in milliseconds
+  issuer: ${JWT_ISSUER:glance_chat_backend}
