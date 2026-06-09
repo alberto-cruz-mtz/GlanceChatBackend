@@ -5,6 +5,7 @@ import alberto.cruz.mtz.glance.chat.backend.dto.OtpCode;
 import alberto.cruz.mtz.glance.chat.backend.exception.UserNotFoundException;
 import alberto.cruz.mtz.glance.chat.backend.model.User;
 import alberto.cruz.mtz.glance.chat.backend.repository.UserRepository;
+import alberto.cruz.mtz.glance.chat.backend.util.EmailSender;
 import alberto.cruz.mtz.glance.chat.backend.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import java.util.UUID;
 public class AuthenticationServiceImpl implements AuthenticationService {
 
     private final UserRepository userRepository;
+    private final EmailSender emailSender;
     private final JwtUtil jwtUtil;
 
     private final Map<String, OtpCode> OTPStorage = new HashMap<>();
@@ -54,7 +56,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         var otpCode = new OtpCode(otpString, user.getEmail(), Instant.now().plusSeconds(FIVE_MINUTES_IN_SECONDS));
         this.OTPStorage.put(email, otpCode);
 
-        sender(email, otpString);
+        emailSender.sendEmailWithOtpCode(email, otpString);
     }
 
     @Override
@@ -70,7 +72,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         var otpCode = new OtpCode(otpString, email, Instant.now().plusSeconds(FIVE_MINUTES_IN_SECONDS));
         this.OTPStorage.put(email, otpCode);
 
-        sender(email, otpString);
+        emailSender.sendEmailWithOtpCode(email, otpString);
     }
 
     @Override
@@ -92,8 +94,4 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return new AuthenticationResponse(token, Instant.now(), createdUser.getId());
     }
 
-
-    private void sender(String emailAddress, String OTP) {
-        IO.println("Sending email to: " + emailAddress + " with code: " + OTP);
-    }
 }
