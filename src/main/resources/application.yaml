@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    active: local
   application:
     name: GlanceChatBackend
   mongodb:
@@ -16,3 +18,15 @@ jwt:
   secret: ${JWT_SECRET:your_jwt_secret_key}
   expiration: ${JWT_EXPIRATION:3600000} # 1 hour in milliseconds
   issuer: ${JWT_ISSUER:glance_chat_backend}
+
+mail:
+  host: ${MAIL_HOST:smtp.example.com}
+  port: ${MAIL_PORT:587}
+  username: ${MAIL_USERNAME:username}
+  password: ${MAIL_PASSWORD:password}
+
+  transport:protocol: smtp
+  smtp:
+    auth: true
+    starttls:enable: true
+  debug: true
