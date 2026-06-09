@@ -4,11 +4,11 @@ import alberto.cruz.mtz.glance.chat.backend.dto.AuthenticationResponse;
 
 public interface AuthenticationService {
 
-    void prepareBeforeAuthenticate(String email);
+    void sendAuthenticationOtpCode(String email);
 
-    AuthenticationResponse authenticate(String email, String OTP);
+    AuthenticationResponse loginWithOtpCode(String email, String otpCode);
 
-    void prepareBeforeRegister(String email);
+    void sendRegistrationOtpCode(String email);
 
-    AuthenticationResponse register(String email, String OTP);
+    AuthenticationResponse registerWithOtpCode(String email, String otpCode);
 }

@@ -21,26 +21,26 @@ public class AuthenticationController {
 
     @PostMapping("/signup/request-code")
     public ResponseEntity<Void> requestCodeForSignup(@RequestBody @Valid AuthenticationRequest request) {
-        authenticationService.prepareBeforeRegister(request.email());
+        authenticationService.sendRegistrationOtpCode(request.email());
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/login/request-code")
     public ResponseEntity<Void> requestCodeForLogin(@RequestBody @Valid AuthenticationRequest request){
-        authenticationService.prepareBeforeAuthenticate(request.email());
+        authenticationService.sendAuthenticationOtpCode(request.email());
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/login/verify")
     public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody @Valid AuthenticationWithOtpRequest request){
-        var response = authenticationService.authenticate(request.email(), request.OTP());
+        var response = authenticationService.loginWithOtpCode(request.email(), request.OTP());
         return ResponseEntity.ok(response);
     }
 
 
     @PostMapping("/signup/verify")
     public ResponseEntity<AuthenticationResponse> register(@RequestBody @Valid AuthenticationWithOtpRequest request){
-        var response = authenticationService.register(request.email(), request.OTP());
+        var response = authenticationService.registerWithOtpCode(request.email(), request.OTP());
         return ResponseEntity.ok(response);
     }
 }

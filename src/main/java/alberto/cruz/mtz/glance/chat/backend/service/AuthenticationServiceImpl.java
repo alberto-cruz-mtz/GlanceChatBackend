@@ -2,6 +2,8 @@ package alberto.cruz.mtz.glance.chat.backend.service;
 
 import alberto.cruz.mtz.glance.chat.backend.dto.AuthenticationResponse;
 import alberto.cruz.mtz.glance.chat.backend.dto.OtpCode;
+import alberto.cruz.mtz.glance.chat.backend.exception.EmailAlreadyInUseException;
+import alberto.cruz.mtz.glance.chat.backend.exception.InvalidOtpException;
 import alberto.cruz.mtz.glance.chat.backend.exception.UserNotFoundException;
 import alberto.cruz.mtz.glance.chat.backend.model.User;
 import alberto.cruz.mtz.glance.chat.backend.repository.UserRepository;
@@ -12,9 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -26,72 +26,78 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final EmailSender emailSender;
     private final JwtUtil jwtUtil;
 
-    private final Map<String, OtpCode> OTPStorage = new HashMap<>();
-    private static final int FIVE_MINUTES_IN_SECONDS = 300;
+    private final Map<String, OtpCode> otpCodeCache = new HashMap<>();
+    private static final int OTP_CODE_EXPIRATION_IN_SECONDS = 300;
 
     @Override
-    public AuthenticationResponse authenticate(String email, String OTP) {
-        var user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User with email " + email + " not found"));
+    public AuthenticationResponse loginWithOtpCode(String email, String otpCode) {
+        var user = this.findUserByEmail(email);
+        this.validateOtpCode(email, otpCode);
 
-        var otpCode = this.OTPStorage.get(email);
-        if (otpCode == null || !otpCode.value().equals(OTP) || otpCode.expiresAt().isBefore(Instant.now())) {
-            throw new IllegalArgumentException("Invalid or expired OTP");
-        }
-
-        String token = jwtUtil.generateToken(user.getDisplayName(), user.getId(), UUID.randomUUID().toString());
-
-        return new AuthenticationResponse(token, Instant.now(), user.getId());
+        String accessToken = jwtUtil.generateToken(user.getDisplayName(), user.getId(), UUID.randomUUID().toString());
+        return new AuthenticationResponse(accessToken, Instant.now(), user.getId());
     }
 
     @Override
-    public void prepareBeforeAuthenticate(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User with email " + email + " not found"));
+    public void sendAuthenticationOtpCode(String email) {
+        this.verifyUserExists(email);
+        var otpCode = this.generateOtpCode(email);
 
-        SecureRandom random = new SecureRandom();
-        int otp = random.nextInt(1000000);
-        String otpString = String.format("%06d", otp);
-
-        var otpCode = new OtpCode(otpString, user.getEmail(), Instant.now().plusSeconds(FIVE_MINUTES_IN_SECONDS));
-        this.OTPStorage.put(email, otpCode);
-
-        emailSender.sendEmailWithOtpCode(email, otpString);
+        this.otpCodeCache.put(email, otpCode);
+        emailSender.sendEmailWithOtpCode(email, otpCode.value());
     }
 
     @Override
-    public void prepareBeforeRegister(String email) {
-        if (userRepository.existsByEmail(email)) {
-            throw new UserNotFoundException("User with email " + email + " already exists");
-        }
+    public void sendRegistrationOtpCode(String email) {
+        this.verifyEmailNotRegistered(email);
+        var otpCode = this.generateOtpCode(email);
+        this.otpCodeCache.put(email, otpCode);
 
-        SecureRandom random = new SecureRandom();
-        int otp = random.nextInt(1000000);
-        String otpString = String.format("%06d", otp);
-
-        var otpCode = new OtpCode(otpString, email, Instant.now().plusSeconds(FIVE_MINUTES_IN_SECONDS));
-        this.OTPStorage.put(email, otpCode);
-
-        emailSender.sendEmailWithOtpCode(email, otpString);
+        emailSender.sendEmailWithOtpCode(email, otpCode.value());
     }
 
     @Override
-    public AuthenticationResponse register(String email, String OTP) {
-        if (userRepository.existsByEmail(email)) {
-            throw new UserNotFoundException("User with email " + email + " already exists");
-        }
-
-        var otpCode = this.OTPStorage.get(email);
-        if (otpCode == null || !otpCode.value().equals(OTP) || otpCode.expiresAt().isBefore(Instant.now())) {
-            throw new IllegalArgumentException("Invalid or expired OTP");
-        }
+    public AuthenticationResponse registerWithOtpCode(String email, String otpCode) {
+        this.verifyEmailNotRegistered(email);
+        this.validateOtpCode(email, otpCode);
 
         User user = User.create(email);
         User createdUser = userRepository.save(user);
 
-        String token = jwtUtil.generateToken(user.getDisplayName(), user.getId(), UUID.randomUUID().toString());
-
-        return new AuthenticationResponse(token, Instant.now(), createdUser.getId());
+        String accessToken = jwtUtil.generateToken(user.getDisplayName(), user.getId(), UUID.randomUUID().toString());
+        return new AuthenticationResponse(accessToken, Instant.now(), createdUser.getId());
     }
 
+    private User findUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User with email address [" + email + "] was not found"));
+    }
+
+    private OtpCode generateOtpCode(String email) {
+        SecureRandom random = new SecureRandom();
+        int otp = random.nextInt(1000000);
+        String formattedOtpCode = String.format("%06d", otp);
+
+        return new OtpCode(formattedOtpCode, email, Instant.now().plusSeconds(OTP_CODE_EXPIRATION_IN_SECONDS));
+    }
+
+    private void validateOtpCode(String email, String otpCode) {
+        var cachedOtpCode = this.otpCodeCache.get(email);
+
+        if (cachedOtpCode == null || !cachedOtpCode.value().equals(otpCode) || cachedOtpCode.expiresAt().isBefore(Instant.now())) {
+            throw new InvalidOtpException("The OTP code is invalid or has expired. Please request a new code.");
+        }
+    }
+
+    private void verifyEmailNotRegistered(String email) {
+        if (userRepository.existsByEmail(email)) {
+            throw new EmailAlreadyInUseException("A user with email address [" + email + "] is already registered");
+        }
+    }
+
+    private void verifyUserExists(String email) {
+        if (!userRepository.existsByEmail(email)) {
+            throw new UserNotFoundException("User with email address [" + email + "] does not exist");
+        }
+    }
 }
