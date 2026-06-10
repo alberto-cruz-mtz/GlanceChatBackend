@@ -84,7 +84,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private void validateOtpCode(String email, String otpCode) {
         var cachedOtpCode = this.otpCodeCache.get(email);
 
-        if (cachedOtpCode == null || !cachedOtpCode.value().equals(otpCode) || cachedOtpCode.expiresAt().isBefore(Instant.now())) {
+        if (cachedOtpCode == null || !cachedOtpCode.otpCodeMatches(otpCode) || cachedOtpCode.isExpired()) {
             throw new InvalidOtpException("The OTP code is invalid or has expired. Please request a new code.");
         }
     }
