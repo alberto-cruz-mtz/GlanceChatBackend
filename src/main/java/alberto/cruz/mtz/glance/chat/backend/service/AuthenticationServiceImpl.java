@@ -9,6 +9,7 @@ import alberto.cruz.mtz.glance.chat.backend.model.User;
 import alberto.cruz.mtz.glance.chat.backend.repository.UserRepository;
 import alberto.cruz.mtz.glance.chat.backend.util.EmailSender;
 import alberto.cruz.mtz.glance.chat.backend.util.JwtUtil;
+import alberto.cruz.mtz.glance.chat.backend.util.PublicIdGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +36,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         this.validateOtpCode(email, otpCode);
 
         String accessToken = jwtUtil.generateToken(user.getDisplayName(), user.getId(), UUID.randomUUID().toString());
-        return new AuthenticationResponse(accessToken, Instant.now(), user.getId());
+
+        String publicId = PublicIdGenerator.formatPublicIdForDisplay(user.getPublicId());
+        return new AuthenticationResponse(accessToken, Instant.now(), publicId);
     }
 
     @Override
@@ -61,11 +64,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         this.verifyEmailNotRegistered(email);
         this.validateOtpCode(email, otpCode);
 
-        User user = User.create(email);
+        String publicId = this.generateUniquePublicId();
+
+        User user = User.create(email, publicId);
         User createdUser = userRepository.save(user);
 
         String accessToken = jwtUtil.generateToken(user.getDisplayName(), user.getId(), UUID.randomUUID().toString());
-        return new AuthenticationResponse(accessToken, Instant.now(), createdUser.getId());
+        String publicIdFormatted = PublicIdGenerator.formatPublicIdForDisplay(createdUser.getPublicId());
+        return new AuthenticationResponse(accessToken, Instant.now(), publicIdFormatted);
     }
 
     private User findUserByEmail(String email) {
@@ -98,6 +104,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private void verifyUserExists(String email) {
         if (!userRepository.existsByEmail(email)) {
             throw new UserNotFoundException("User with email address [" + email + "] does not exist");
+        }
+    }
+
+    private String generateUniquePublicId() {
+        while (true) {
+            String publicId = PublicIdGenerator.generatePublicId();
+            if (!userRepository.existsByPublicId(publicId)) {
+                return publicId;
+            }
         }
     }
 }

@@ -63,9 +63,10 @@ public class User {
     @Field("updated_at")
     private Instant updatedAt;
 
-    public static User create(String email) {
+    public static User create(String email, String publicId) {
         return User.builder()
                 .email(email)
+                .publicId(publicId)
                 .displayName(email.split("@")[0]) // Por defecto, el display name es la parte antes del @
                 .build();
     }
