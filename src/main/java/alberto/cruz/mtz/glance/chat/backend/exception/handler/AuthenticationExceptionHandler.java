@@ -3,7 +3,6 @@ package alberto.cruz.mtz.glance.chat.backend.exception.handler;
 import alberto.cruz.mtz.glance.chat.backend.exception.EmailAlreadyInUseException;
 import alberto.cruz.mtz.glance.chat.backend.exception.InvalidOtpException;
 import alberto.cruz.mtz.glance.chat.backend.exception.UserNotFoundException;
-import org.springframework.beans.factory.parsing.Problem;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
