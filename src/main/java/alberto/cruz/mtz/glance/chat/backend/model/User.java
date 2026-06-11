@@ -22,7 +22,6 @@ import java.time.Instant;
 @Document(collection = "users")
 public class User {
 
-
     @Id
     private String id;
 
@@ -32,14 +31,13 @@ public class User {
     @Indexed(unique = true)
     private String email;
 
+    @Indexed(unique = true)
     @Field("public_id")
     private String publicId;
-
 
     /**
      * Nombre visible en conversaciones (username / display name).
      */
-    @Indexed
     @Field("display_name")
     private String displayName;
 

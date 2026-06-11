@@ -8,8 +8,6 @@ import java.util.List;
 
 public interface ConversationRepository extends MongoRepository<Conversation, String> {
 
-    List<Conversation> findByParticipantIds(List<String> participantIds);
-
-    @Query(value = "{participants_id: ?0}", sort = "{last_message_at: -1}")
+    @Query(value = "{participants: ?0}", sort = "{last_message.sentAt: -1}")
     List<Conversation> findByParticipantIds(String participantId);
 }

@@ -19,12 +19,7 @@ import java.time.Instant;
 @Getter
 @Setter
 @Document(collection = "messages")
-@CompoundIndexes({
-        // Paginación de mensajes en una conversación (más recientes primero)
-        @CompoundIndex(name = "idx_conv_sent", def = "{'conversation_id': 1, 'sent_at': -1}"),
-        // Para marcar como leídos todos los mensajes no leídos del destinatario
-        @CompoundIndex(name = "idx_conv_sender_status", def = "{'conversation_id': 1, 'sender_id': 1, 'status': 1}")
-})
+@CompoundIndex(name = "conversation_history_idx", def = "{'conversation_id': 1, 'sent_at': -1}")
 public class Message {
 
     @Id
@@ -71,40 +66,10 @@ public class Message {
     private Instant deliveredAt;
 
     /**
-     * Cuando el destinatario abrió el chat y vio el mensaje.
-     * Null hasta que el cliente confirme la lectura.
-     */
-    @Field("read_at")
-    private Instant readAt;
-
-    /**
      * Marca de borrado suave.
      * Si no es null, el mensaje fue eliminado por el remitente.
      * Al eliminar: establecer deletedAt = Instant.now() y limpiar content = null.
      */
     @Field("deleted_at")
     private Instant deletedAt;
-
-    /**
-     * Indica si el mensaje ha sido eliminado.
-     */
-    public boolean isDeleted() {
-        return deletedAt != null;
-    }
-
-    /**
-     * Indica si el mensaje aún no ha sido leído.
-     */
-    public boolean isUnread() {
-        return status == MessageStatus.SENT || status == MessageStatus.DELIVERED;
-    }
-
-    /**
-     * Aplica el borrado suave: limpia el contenido y registra la fecha.
-     * Llamar antes de guardar con mongoTemplate o repository.save().
-     */
-    public void softDelete() {
-        this.content = null;
-        this.deletedAt = Instant.now();
-    }
 }
