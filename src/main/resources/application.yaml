@@ -25,8 +25,11 @@ mail:
   username: ${MAIL_USERNAME:username}
   password: ${MAIL_PASSWORD:password}
 
-  transport:protocol: smtp
-  smtp:
-    auth: true
-    starttls:enable: true
-  debug: true
+aws:
+  s3:
+    access-key: ${AWS_ACCESS_KEY:admin}
+    secret-key: ${AWS_SECRET_KEY:123456789}
+    bucket-name: ${AWS_S3_BUCKET_NAME:avatars}
+    region: ${AWS_REGION:us-east-1}
+    url: ${AWS_S3_URL:http://localhost:9000}
+    public-url: ${AWS_S3_PUBLIC_URL:http://localhost:9000/avatars}  # host/bucket
