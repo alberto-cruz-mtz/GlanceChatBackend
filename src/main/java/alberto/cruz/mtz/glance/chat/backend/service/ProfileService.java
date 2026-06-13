@@ -6,4 +6,8 @@ import org.springframework.web.multipart.MultipartFile;
 public interface ProfileService {
 
    ProfileResponse setUpProfile(String id, String username, MultipartFile file);
+
+   String updateAvatarUrl(String id, MultipartFile file);
+
+   void updateUsername(String id, String username);
 }
