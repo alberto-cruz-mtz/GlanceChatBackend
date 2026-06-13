@@ -18,14 +18,10 @@ public class FilesStorageConfiguration {
     private String accessKey;
     @Value("${aws.s3.secret-key}")
     private String secretKey;
-    @Value("${aws.s3.bucket-name}")
-    private String bucketName;
     @Value("${aws.s3.region}")
     private String region;
     @Value("${aws.s3.url}")
     private String url;
-    @Value("${aws.s3.public-url}")
-    private String publicUrl;
 
     @Bean
     public S3Client clientStorage() {
@@ -38,15 +34,5 @@ public class FilesStorageConfiguration {
                 .credentialsProvider(credentialsProvider)
                 .forcePathStyle(true)
                 .build();
-    }
-
-    @Bean
-    public String bucketName() {
-        return this.bucketName;
-    }
-
-    @Bean
-    public String bucketUrl() {
-        return this.publicUrl;
     }
 }
