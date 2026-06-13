@@ -53,6 +53,9 @@ public class User {
     @Builder.Default
     private UserStatus status = UserStatus.OFFLINE;
 
+    @Builder.Default
+    private boolean hasSetUpProfile = false;
+
     @CreatedDate
     @Field("created_at")
     private Instant createdAt;
