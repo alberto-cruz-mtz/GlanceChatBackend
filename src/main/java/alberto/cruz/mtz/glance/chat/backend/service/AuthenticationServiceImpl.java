@@ -36,9 +36,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         this.validateOtpCode(email, otpCode);
 
         String accessToken = jwtUtil.generateToken(user.getDisplayName(), user.getId(), UUID.randomUUID().toString());
-
         String publicId = PublicIdGenerator.formatPublicIdForDisplay(user.getPublicId());
-        return new AuthenticationResponse(accessToken, Instant.now(), publicId);
+
+        return AuthenticationResponse.create(accessToken, publicId, user);
     }
 
     @Override
@@ -71,7 +71,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         String accessToken = jwtUtil.generateToken(user.getDisplayName(), user.getId(), UUID.randomUUID().toString());
         String publicIdFormatted = PublicIdGenerator.formatPublicIdForDisplay(createdUser.getPublicId());
-        return new AuthenticationResponse(accessToken, Instant.now(), publicIdFormatted);
+        return AuthenticationResponse.create(accessToken, publicIdFormatted, createdUser);
     }
 
     private User findUserByEmail(String email) {
