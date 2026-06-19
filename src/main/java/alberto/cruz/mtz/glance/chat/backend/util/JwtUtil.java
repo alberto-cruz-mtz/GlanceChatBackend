@@ -18,6 +18,7 @@ public class JwtUtil {
     private final String issuer;
     private final Algorithm algorithm;
     private final JWTVerifier verifier;
+    private final JWTVerifier verifierTemporary;
 
     public JwtUtil(
             @Value("${jwt.secret}") String secret,
@@ -31,6 +32,13 @@ public class JwtUtil {
 
         this.verifier = JWT.require(this.algorithm)
                 .withIssuer(this.issuer)
+                .withClaim("type", "ACCESS")
+                .build();
+
+        this.verifierTemporary = JWT.require(this.algorithm)
+                .withIssuer(this.issuer)
+                .withClaim("type", "2FA")
+                .withClaim("scope", "2FA_ONLY")
                 .build();
     }
 
@@ -43,14 +51,42 @@ public class JwtUtil {
                 .withNotBefore(Instant.now())
                 .withClaim("id", userId)
                 .withClaim("session_id", sessionId)
+                .withClaim("type", "ACCESS")
                 .sign(this.algorithm);
     }
 
-    public DecodedJWT verify(DecodedJWT token) {
+    public String generateTemporaryToken(String username, String userId) {
+        return JWT.create()
+                .withSubject(username)
+                .withIssuer(this.issuer)
+                .withExpiresAt(Instant.now().plusSeconds(300))
+                .withIssuedAt(Instant.now())
+                .withNotBefore(Instant.now())
+                .withClaim("id", userId)
+                .withClaim("type", "2FA")
+                .withClaim("scope", "2FA_ONLY")
+                .sign(this.algorithm);
+    }
+
+    /**
+     * @throws InvalidJwtException if the token is invalid or expired
+     */
+    public DecodedJWT verify(String token) {
         try {
-            return this.verifier.verify(token.getToken());
+            return this.verifier.verify(token);
         } catch (JWTVerificationException jwtVerificationException) {
             throw new InvalidJwtException("JWT Invalid: Token missing, malformed, expired or with an invalid signature");
+        }
+    }
+
+    /**
+     * @throws InvalidJwtException if the token is invalid or expired
+     */
+    public DecodedJWT verifyTemporaryToken(String token) {
+        try {
+            return this.verifierTemporary.verify(token);
+        } catch (JWTVerificationException jwtVerificationException) {
+            throw new InvalidJwtException("Temporary JWT Invalid: Token missing, malformed, expired or with an invalid signature");
         }
     }
 
