@@ -1,14 +1,17 @@
 package alberto.cruz.mtz.glance.chat.backend.service;
 
+import alberto.cruz.mtz.glance.chat.backend.dto.AccessTokenResponse;
 import alberto.cruz.mtz.glance.chat.backend.dto.AuthenticationResponse;
 
 public interface AuthenticationService {
 
-    void sendAuthenticationOtpCode(String email);
+    AuthenticationResponse register(String username, String password);
 
-    AuthenticationResponse loginWithOtpCode(String email, String otpCode);
+    AuthenticationResponse authenticate(String username, String password);
 
-    void sendRegistrationOtpCode(String email);
+    String generateSecretForActive2fa(String username);
 
-    AuthenticationResponse registerWithOtpCode(String email, String otpCode);
+    void validateTheFirstOtpCodeAndActive2fa(String username, String code);
+
+    AccessTokenResponse verifyTotpCodeAndGenerateAccessToken(String token, String code);
 }
