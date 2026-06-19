@@ -1,7 +1,7 @@
 package alberto.cruz.mtz.glance.chat.backend.exception;
 
-public class EmailAlreadyInUseException extends RuntimeException {
-    public EmailAlreadyInUseException(String message) {
+public class UsernameAlreadyInUseException extends RuntimeException {
+    public UsernameAlreadyInUseException(String message) {
         super(message);
     }
 }
