@@ -43,6 +43,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(problemDetail);
     }
 
+    @ExceptionHandler(UnknownException.class)
     public ResponseEntity<ProblemDetail> handleUnknownException(UnknownException ignore) {
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 
