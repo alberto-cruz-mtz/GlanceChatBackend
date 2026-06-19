@@ -25,36 +25,34 @@ public class User {
     @Id
     private String id;
 
-    /**
-     * Email único — sirve como identificador de login.
-     */
     @Indexed(unique = true)
-    private String email;
+    private String username;
+
+    private String password;
 
     @Indexed(unique = true)
     @Field("public_id")
     private String publicId;
 
-    /**
-     * Nombre visible en conversaciones (username / display name).
-     */
     @Field("display_name")
     private String displayName;
 
-    /**
-     * URL pública del avatar. Puede ser null.
-     */
     @Field("avatar_url")
     private String avatarUrl;
 
-    /**
-     * Presencia actual del usuario.
-     */
+    @Field("secret_user_2fa")
+    private String secret;
+
     @Builder.Default
     private UserStatus status = UserStatus.OFFLINE;
 
+    @Field("has_setup_up_profile")
     @Builder.Default
     private boolean hasSetUpProfile = false;
+
+    @Field("enabled_2fa")
+    @Builder.Default
+    private boolean enabled2fa = false;
 
     @CreatedDate
     @Field("created_at")
@@ -64,11 +62,12 @@ public class User {
     @Field("updated_at")
     private Instant updatedAt;
 
-    public static User create(String email, String publicId) {
+    public static User create(String username, String password, String publicId) {
         return User.builder()
-                .email(email)
+                .username(username)
+                .password(password)
                 .publicId(publicId)
-                .displayName(email.split("@")[0]) // Por defecto, el display name es la parte antes del @
+                .displayName(username.split("@")[0]) // Por defecto, el display name es la parte antes del @
                 .build();
     }
 }
