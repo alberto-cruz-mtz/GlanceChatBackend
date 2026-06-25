@@ -32,6 +32,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(http -> {
                     http.requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/login/2fa", "/api/auth/signup").permitAll();
                     http.requestMatchers(HttpMethod.POST, "/api/auth/2fa/**").authenticated();
+                    http.requestMatchers("/ws").permitAll();
                     http.anyRequest().denyAll();
                 })
                 .addFilterBefore(authorizationFilter, UsernamePasswordAuthenticationFilter.class)
