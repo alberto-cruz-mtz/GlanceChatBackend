@@ -3,7 +3,9 @@ package alberto.cruz.mtz.glance.chat.backend.service;
 import alberto.cruz.mtz.glance.chat.backend.dto.AccessTokenResponse;
 import alberto.cruz.mtz.glance.chat.backend.dto.AuthenticationResponse;
 import alberto.cruz.mtz.glance.chat.backend.exception.InvalidJwtException;
-import alberto.cruz.mtz.glance.chat.backend.exception.UnknownException;
+import alberto.cruz.mtz.glance.chat.backend.exception.InvalidTotpCodeException;
+import alberto.cruz.mtz.glance.chat.backend.exception.InvalidTemporaryTokenException;
+import alberto.cruz.mtz.glance.chat.backend.exception.TwoFactorAuthenticationNotActiveException;
 import alberto.cruz.mtz.glance.chat.backend.exception.UserNotFoundException;
 import alberto.cruz.mtz.glance.chat.backend.exception.UsernameAlreadyInUseException;
 import alberto.cruz.mtz.glance.chat.backend.model.User;
@@ -74,7 +76,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         boolean isValid = totpAuthenticator.verifyCode(user.getSecret(), code);
 
-        if (!isValid) throw new UnknownException("Invalid OTP code, try again");
+        if (!isValid) throw new InvalidTotpCodeException("Invalid OTP code provided for user: " + username);
 
         user.setEnabled2fa(true);
         userRepository.save(user);
@@ -87,18 +89,18 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             DecodedJWT decodedJWT = jwtUtil.verifyTemporaryToken(temporaryToken);
             username = jwtUtil.getUsername(decodedJWT);
         } catch (InvalidJwtException ignore) {
-            throw new UnknownException("Token invalid, please authenticate again");
+            throw new InvalidTemporaryTokenException("Invalid temporary token provided");
         }
 
         User user = this.findUserByUsername(username);
 
         if (user.getSecret() == null) {
-            throw new UnknownException("2FA is not active for this user");
+            throw new TwoFactorAuthenticationNotActiveException("Two-factor authentication is not active for user: " + username);
         }
 
         boolean isValid = totpAuthenticator.verifyCode(user.getSecret(), code);
 
-        if (!isValid) throw new UnknownException("TOTP code is invalid");
+        if (!isValid) throw new InvalidTotpCodeException("Invalid TOTP code provided for user: " + username);
 
         String token = this.generateAccessToken(user.getUsername(), user.getId());
         return new AccessTokenResponse(token);

@@ -1,7 +1,7 @@
 package alberto.cruz.mtz.glance.chat.backend.configuration;
 
 import alberto.cruz.mtz.glance.chat.backend.exception.InvalidJwtException;
-import alberto.cruz.mtz.glance.chat.backend.exception.UnknownException;
+import alberto.cruz.mtz.glance.chat.backend.exception.MissingAuthorizationHeaderException;
 import alberto.cruz.mtz.glance.chat.backend.util.JwtUtil;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.sun.security.auth.UserPrincipal;
@@ -48,12 +48,12 @@ public class AuthenticationInterceptor implements ChannelInterceptor {
                     log.info("User authenticated: {}", principal);
                 } else {
                     log.error("Authorization header is missing or invalid");
-                    throw new UnknownException("Authorization header is missing or invalid");
+                    throw new MissingAuthorizationHeaderException("Authorization header is missing or invalid");
                 }
             } catch (InvalidJwtException invalidJwtException) {
                 throw new MessageDeliveryException("Forbidden: Invalid access token, please provide a valid access token to connect to the WebSocket.");
-            } catch (UnknownException unknownException) {
-                throw new MessageDeliveryException("Forbidden: Authorization header is missing or invalid, please provide a valid access token to connect to the WebSocket.");
+            } catch (MissingAuthorizationHeaderException unknownException) {
+                throw new MessageDeliveryException("Forbidden: Authorization header is missing or invalid");
             }
         }
 
