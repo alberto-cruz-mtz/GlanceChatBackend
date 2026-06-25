@@ -100,19 +100,18 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         if (!isValid) throw new UnknownException("TOTP code is invalid");
 
-        String token = this.generateAccessToken(user.getUsername(), user.getPublicId());
+        String token = this.generateAccessToken(user.getUsername(), user.getId());
         return new AccessTokenResponse(token);
     }
 
     private String generateAuthenticationToken(User user) {
-        if (user.isEnabled2fa()) return jwtUtil.generateTemporaryToken(user.getUsername(), user.getPublicId());
+        if (user.isEnabled2fa()) return jwtUtil.generateTemporaryToken(user.getUsername(), user.getId());
 
-        //TODO: Cambiar el UUID.randomUUID() por el id de sesion generado por Spring Security
-        return this.generateAccessToken(user.getUsername(), user.getPublicId());
+        return this.generateAccessToken(user.getUsername(), user.getId());
     }
 
-    private String generateAccessToken(String username, String publicId) {
-        return jwtUtil.generateToken(username, publicId, UUID.randomUUID().toString());
+    private String generateAccessToken(String username, String userId) {
+        return jwtUtil.generateToken(username, userId, UUID.randomUUID().toString());
     }
 
     private void validateIfUsernameAlreadyInUse(String username) {
