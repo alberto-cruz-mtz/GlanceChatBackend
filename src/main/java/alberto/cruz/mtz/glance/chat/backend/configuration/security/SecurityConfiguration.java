@@ -33,6 +33,9 @@ public class SecurityConfiguration {
                     http.requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/login/2fa", "/api/auth/signup").permitAll();
                     http.requestMatchers(HttpMethod.POST, "/api/auth/2fa/**").authenticated();
                     http.requestMatchers("/ws").permitAll();
+                    http.requestMatchers("/swagger-ui/**").permitAll();
+                    http.requestMatchers("/swagger-ui.html").permitAll();
+                    http.requestMatchers("/v3/api-docs/**").permitAll();
 
                     http.requestMatchers("/api/chats/**").authenticated();
 
