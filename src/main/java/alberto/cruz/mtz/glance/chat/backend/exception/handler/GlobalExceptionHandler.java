@@ -51,7 +51,7 @@ public class GlobalExceptionHandler {
         problemDetail.setTitle("Internal Server Error");
         problemDetail.setType(URI.create(ERROR_URI + "/internal-server-error"));
 
-        log.error("An unexpected error occurred", ignore);
+        log.warn("An unexpected error occurred: {}", ignore.getMessage());
 
         return ResponseEntity.status(status).body(problemDetail);
     }
