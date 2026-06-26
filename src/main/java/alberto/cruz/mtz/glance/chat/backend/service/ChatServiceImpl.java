@@ -9,6 +9,7 @@ import alberto.cruz.mtz.glance.chat.backend.exception.InvalidPublicIdException;
 import alberto.cruz.mtz.glance.chat.backend.exception.UnauthorizedAccessException;
 import alberto.cruz.mtz.glance.chat.backend.exception.UserNotFoundException;
 import alberto.cruz.mtz.glance.chat.backend.model.Conversation;
+import alberto.cruz.mtz.glance.chat.backend.model.LastMessage;
 import alberto.cruz.mtz.glance.chat.backend.model.User;
 import alberto.cruz.mtz.glance.chat.backend.repository.ConversationRepository;
 import alberto.cruz.mtz.glance.chat.backend.repository.UserRepository;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -83,6 +85,20 @@ public class ChatServiceImpl implements ChatService {
         Recipient recipientInfo = new Recipient(recipient.getId(), recipientName, recipient.getAvatarUrl());
 
         return new ChatResponse(conversation.getId(), recipientInfo);
+    }
+
+    @Override
+    public String recordMessageAndCreateConversationIfNeeded(String senderId, String recipientId, String content) {
+        LastMessage lastMessage = new LastMessage(content, Instant.now());
+
+        return conversationRepository.findBySenderIdAndRecipientId(senderId, recipientId)
+                .map(conversation -> {
+                    conversation.setLastMessage(lastMessage);
+                    return conversationRepository.save(conversation).getId();
+                }).orElseGet(() -> {
+                    Conversation conversation = new Conversation(null, senderId, recipientId, lastMessage, Instant.now());
+                    return conversationRepository.save(conversation).getId();
+                });
     }
 
 }

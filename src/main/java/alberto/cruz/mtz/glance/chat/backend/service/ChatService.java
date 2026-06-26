@@ -10,4 +10,6 @@ public interface ChatService {
     DataResponse<ChatResponse> getAllChats(String userId);
 
     ChatResponse getChat(String userId, String chatId);
+
+    String recordMessageAndCreateConversationIfNeeded(String senderId, String recipientId, String content);
 }
