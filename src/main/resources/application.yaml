@@ -14,6 +14,9 @@ spring:
     problemdetails:
       enabled: true
 
+error:
+  url: ${ERROR_URL:http://localhost:8080/error}
+
 jwt:
   secret: ${JWT_SECRET:your_jwt_secret_key}
   expiration: ${JWT_EXPIRATION:3600000} # 1 hour in milliseconds
@@ -33,3 +36,4 @@ aws:
     region: ${AWS_REGION:us-east-1}
     url: ${AWS_S3_URL:http://localhost:9000}
     public-url: ${AWS_S3_PUBLIC_URL:http://localhost:9000/avatars}  # host/bucket
+

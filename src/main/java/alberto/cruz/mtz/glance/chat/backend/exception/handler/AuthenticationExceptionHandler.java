@@ -3,6 +3,7 @@ package alberto.cruz.mtz.glance.chat.backend.exception.handler;
 import alberto.cruz.mtz.glance.chat.backend.exception.UsernameAlreadyInUseException;
 import alberto.cruz.mtz.glance.chat.backend.exception.InvalidOtpException;
 import alberto.cruz.mtz.glance.chat.backend.exception.UserNotFoundException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +18,8 @@ import java.net.URI;
 @RestControllerAdvice
 public class AuthenticationExceptionHandler {
 
-    private final static String ERROR_URL = "https://example.com/error";
+    @Value("${error.url}")
+    private static String ERROR_URL;
 
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleUserNotFound(UserNotFoundException exception) {

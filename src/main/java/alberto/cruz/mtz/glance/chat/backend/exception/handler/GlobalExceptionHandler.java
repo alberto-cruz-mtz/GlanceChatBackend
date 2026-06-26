@@ -2,6 +2,7 @@ package alberto.cruz.mtz.glance.chat.backend.exception.handler;
 
 import alberto.cruz.mtz.glance.chat.backend.exception.UnknownException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -21,7 +22,8 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    private final static String ERROR_URI = "https://example.com/error";
+    @Value("${error.url}")
+    private static String ERROR_URL;
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ProblemDetail> handleValidationExceptions(MethodArgumentNotValidException ex) {
@@ -38,7 +40,7 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, firstErrorMessage);
         problemDetail.setTitle("Validation Failed");
         problemDetail.setProperty("fieldErrors", fieldErrors);
-        problemDetail.setType(URI.create(ERROR_URI + "/validation-failed"));
+        problemDetail.setType(URI.create(ERROR_URL + "/validation-failed"));
 
         return ResponseEntity.status(status).body(problemDetail);
     }
@@ -49,7 +51,7 @@ public class GlobalExceptionHandler {
 
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, "An unexpected error occurred");
         problemDetail.setTitle("Internal Server Error");
-        problemDetail.setType(URI.create(ERROR_URI + "/internal-server-error"));
+        problemDetail.setType(URI.create(ERROR_URL + "/internal-server-error"));
 
         log.warn("An unexpected error occurred: {}", ignore.getMessage());
 
