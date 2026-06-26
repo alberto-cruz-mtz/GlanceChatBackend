@@ -1,5 +1,8 @@
 package alberto.cruz.mtz.glance.chat.backend.exception.handler;
 
+import alberto.cruz.mtz.glance.chat.backend.exception.InvalidTemporaryTokenException;
+import alberto.cruz.mtz.glance.chat.backend.exception.InvalidTotpCodeException;
+import alberto.cruz.mtz.glance.chat.backend.exception.TwoFactorAuthenticationNotActiveException;
 import alberto.cruz.mtz.glance.chat.backend.exception.UsernameAlreadyInUseException;
 import alberto.cruz.mtz.glance.chat.backend.exception.InvalidOtpException;
 import alberto.cruz.mtz.glance.chat.backend.exception.UserNotFoundException;
@@ -43,13 +46,13 @@ public class AuthenticationExceptionHandler {
         return ResponseEntity.status(status).body(problemDetail);
     }
 
-    @ExceptionHandler(InvalidOtpException.class)
-    public ResponseEntity<ProblemDetail> handleInvalidOtp(InvalidOtpException exception) {
+    @ExceptionHandler(InvalidTotpCodeException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidTotp(InvalidTotpCodeException exception) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
 
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, exception.getMessage());
-        problemDetail.setTitle("Invalid OTP Code");
-        problemDetail.setType(URI.create(ERROR_URL + "/authentication/invalid-otp-code"));
+        problemDetail.setTitle("Invalid TOTP Code");
+        problemDetail.setType(URI.create(ERROR_URL + "/authentication/invalid-totp-code"));
 
         return ResponseEntity.status(status).body(problemDetail);
     }
@@ -62,6 +65,28 @@ public class AuthenticationExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, message);
         problemDetail.setType(URI.create(ERROR_URL + "/authentication"));
         problemDetail.setTitle("Authentication failed");
+
+        return ResponseEntity.status(status).body(problemDetail);
+    }
+
+    @ExceptionHandler(InvalidTemporaryTokenException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidTemporaryToken(InvalidTemporaryTokenException exception) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, exception.getMessage());
+        problemDetail.setTitle("Invalid Temporary Token");
+        problemDetail.setType(URI.create(ERROR_URL + "/authentication/invalid-temporary-token"));
+
+        return ResponseEntity.status(status).body(problemDetail);
+    }
+
+    @ExceptionHandler(TwoFactorAuthenticationNotActiveException.class)
+    public ResponseEntity<ProblemDetail> handleTwoFactorAuthenticationNotActiveException(TwoFactorAuthenticationNotActiveException exception) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, exception.getMessage());
+        problemDetail.setTitle("Two-factor authentication is not active");
+        problemDetail.setInstance(URI.create(ERROR_URL + "/authentication/two-factor-authentication-not-active"));
 
         return ResponseEntity.status(status).body(problemDetail);
     }

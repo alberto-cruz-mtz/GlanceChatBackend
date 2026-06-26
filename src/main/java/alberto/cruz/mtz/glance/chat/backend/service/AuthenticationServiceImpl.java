@@ -76,7 +76,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         boolean isValid = totpAuthenticator.verifyCode(user.getSecret(), code);
 
-        if (!isValid) throw new InvalidTotpCodeException("Invalid OTP code provided for user: " + username);
+        if (!isValid) throw new InvalidTotpCodeException("Invalid TOTP code provided for user: " + username);
 
         user.setEnabled2fa(true);
         userRepository.save(user);
