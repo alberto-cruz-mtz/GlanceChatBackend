@@ -3,6 +3,7 @@ package alberto.cruz.mtz.glance.chat.backend.controller.rest;
 import alberto.cruz.mtz.glance.chat.backend.dto.ProfileRequest;
 import alberto.cruz.mtz.glance.chat.backend.dto.ProfileResponse;
 import alberto.cruz.mtz.glance.chat.backend.service.ProfileService;
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -18,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/profiles")
 @RequiredArgsConstructor
+@Hidden
 public class ProfileController {
 
     private final ProfileService profileService;
