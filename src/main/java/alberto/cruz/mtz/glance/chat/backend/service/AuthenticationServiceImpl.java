@@ -3,6 +3,7 @@ package alberto.cruz.mtz.glance.chat.backend.service;
 import alberto.cruz.mtz.glance.chat.backend.dto.AccessTokenResponse;
 import alberto.cruz.mtz.glance.chat.backend.dto.AuthenticationResponse;
 import alberto.cruz.mtz.glance.chat.backend.dto.Device;
+import alberto.cruz.mtz.glance.chat.backend.dto.DeviceCodeResponse;
 import alberto.cruz.mtz.glance.chat.backend.exception.InvalidJwtException;
 import alberto.cruz.mtz.glance.chat.backend.exception.InvalidTotpCodeException;
 import alberto.cruz.mtz.glance.chat.backend.exception.InvalidTemporaryTokenException;
@@ -119,15 +120,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public String generateDeviceCode(String deviceName, String os) {
+    public DeviceCodeResponse generateDeviceCode(String deviceName, String os) {
         SecureRandom random = new SecureRandom();
         int code = random.nextInt(1000000);
         String deviceCode = String.format("%06d", code);
 
-        Device device = Device.create(deviceName, os);
+        Device device = Device.create(deviceName, os, 300);
         this.sessionStorage.put(deviceCode, device);
 
-        return deviceCode;
+        return new DeviceCodeResponse(deviceCode, 300);
     }
 
     @Override

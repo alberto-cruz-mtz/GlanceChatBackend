@@ -40,7 +40,7 @@ public class Device {
         this.status = "AUTHORIZED";
     }
 
-    public static Device create(String name, String os) {
-        return new Device(null, name, os, Instant.now().plusSeconds(300), "PENDING");
+    public static Device create(String name, String os, int expirationInSeconds) {
+        return new Device(null, name, os, Instant.now().plusSeconds(expirationInSeconds), "PENDING");
     }
 }
