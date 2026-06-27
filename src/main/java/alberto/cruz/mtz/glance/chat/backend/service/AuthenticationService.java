@@ -3,6 +3,8 @@ package alberto.cruz.mtz.glance.chat.backend.service;
 import alberto.cruz.mtz.glance.chat.backend.dto.AccessTokenResponse;
 import alberto.cruz.mtz.glance.chat.backend.dto.AuthenticationResponse;
 
+import java.util.Optional;
+
 public interface AuthenticationService {
 
     AuthenticationResponse register(String username, String password);
@@ -14,4 +16,10 @@ public interface AuthenticationService {
     void validateTheFirstOtpCodeAndActive2fa(String username, String code);
 
     AccessTokenResponse verifyTotpCodeAndGenerateAccessToken(String token, String code);
+
+    String generateDeviceCode(String deviceName, String os);
+
+    void authorizeDevice(String deviceCode, String username);
+
+    Optional<AuthenticationResponse> checkDeviceCodeStatus(String deviceCode);
 }
