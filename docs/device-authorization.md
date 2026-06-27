@@ -1,20 +1,20 @@
-# Device Authorization Flow
+# Flujo de Autorización de Dispositivos
 
-This guide explains how to authorize a new device using the `/api/auth/devices/**` endpoints. The flow follows a Device Authorization Grant pattern similar to OAuth 2.0.
+Esta guía explica cómo autorizar un nuevo dispositivo utilizando los endpoints `/api/auth/devices/**`. El flujo sigue un patrón de Device Authorization Grant similar a OAuth 2.0.
 
-## Overview
+## Resumen del Flujo
 
 ```
-NEW DEVICE (unauthenticated)                 USER (authenticated)
+DISPOSITIVO NUEVO (sin autenticar)          USUARIO (autenticado)
          |                                         |
   1.  POST /devices/request-code                   |
      body: { deviceName, osVersion }               |
      <-- 200: { deviceCode: "048291",              |
                expiresIn: 300 }                    |
          |                                         |
-     [Device shows "048291" to user]               |
+     [El dispositivo muestra "048291" al usuario]  |
          |                                         |
-  2.  (polling loop)                     POST /devices/authorize
+  2.  (bucle de polling)               POST /devices/authorize
          |                              body: { deviceCode: "048291" }
          |                              header: Bearer <JWT>
          |                              <-- 204 No Content
@@ -22,19 +22,19 @@ NEW DEVICE (unauthenticated)                 USER (authenticated)
   3.  POST /devices/checked                       |
      body: { deviceCode: "048291" }                |
      <-- 200: { id, publicId, accessToken, ... }   |
-     (or 202 Accepted if still pending)            |
+     (o 202 Accepted si aún está pendiente)        |
          |                                         |
-  4.  [New device stores JWT,                     |
-       proceeds as authenticated user]            |
+  4.  [El nuevo dispositivo almacena el JWT,      |
+       procede como usuario autenticado]          |
 ```
 
 ## Endpoints
 
-### 1. Request Authorization Code
+### 1. Solicitar Código de Autorización
 
 **`POST /api/auth/devices/request-code`**
 
-No authentication required. The new device calls this to get a 6-digit code.
+No requiere autenticación. El nuevo dispositivo llama a este endpoint para obtener un código de 6 dígitos.
 
 **Request:**
 
@@ -48,10 +48,10 @@ Content-Type: application/json
 }
 ```
 
-| Field        | Type   | Required | Description            |
-|--------------|--------|----------|------------------------|
-| `deviceName` | string | Yes      | Name of the device     |
-| `osVersion`  | string | Yes      | OS version of device   |
+| Campo        | Tipo   | Requerido | Descripción                |
+|--------------|--------|-----------|----------------------------|
+| `deviceName` | string | Sí        | Nombre del dispositivo     |
+| `osVersion`  | string | Sí        | Versión del SO del disp.   |
 
 **Response (200 OK):**
 
@@ -62,15 +62,15 @@ Content-Type: application/json
 }
 ```
 
-> The code expires in **5 minutes**. Display this code to the user so they can enter it on an already-authenticated device.
+> El código expira en **5 minutos**. Muestra este código al usuario para que lo ingrese en un dispositivo ya autenticado.
 
 ---
 
-### 2. Authorize Device
+### 2. Autorizar Dispositivo
 
 **`POST /api/auth/devices/authorize`**
 
-Requires authentication. The logged-in user approves the device by providing the code.
+Requiere autenticación. El usuario que ya tiene sesión autoriza el dispositivo proporcionando el código.
 
 **Request:**
 
@@ -84,29 +84,29 @@ Authorization: Bearer <JWT>
 }
 ```
 
-| Field        | Type   | Required | Description                              |
-|--------------|--------|----------|------------------------------------------|
-| `deviceCode` | string | Yes      | 6-digit code shown on the new device     |
+| Campo        | Tipo   | Requerido | Descripción                              |
+|--------------|--------|-----------|------------------------------------------|
+| `deviceCode` | string | Sí        | Código de 6 dígitos mostrado en el nuevo dispositivo |
 
-**Validation:**
-- `deviceCode` must be exactly 6 digits (`^[0-9]{6}$`)
+**Validación:**
+- `deviceCode` debe ser exactamente 6 dígitos (`^[0-9]{6}$`)
 
-**Responses:**
+**Respuestas:**
 
-| Status | Description                                     |
-|--------|-------------------------------------------------|
-| 204    | Device authorized successfully                  |
-| 400    | Invalid or expired code                         |
-| 404    | Authenticated user not found                    |
-| 409    | Code has already been used by another user       |
+| Estado | Descripción                                         |
+|--------|-----------------------------------------------------|
+| 204    | Dispositivo autorizado exitosamente                 |
+| 400    | Código inválido o expirado                           |
+| 404    | Usuario autenticado no encontrado                    |
+| 409    | El código ya fue utilizado por otro usuario          |
 
 ---
 
-### 3. Check Authorization Status
+### 3. Verificar Estado de Autorización
 
 **`POST /api/auth/devices/checked`**
 
-No authentication required. The new device polls this endpoint to check if a user has authorized its code.
+No requiere autenticación. El nuevo dispositivo hace polling a este endpoint para verificar si un usuario autorizó su código.
 
 **Request:**
 
@@ -119,15 +119,15 @@ Content-Type: application/json
 }
 ```
 
-**Responses:**
+**Respuestas:**
 
-| Status | Description                                           |
+| Estado | Descripción                                           |
 |--------|-------------------------------------------------------|
-| 200    | Device authorized — returns full `AuthenticationResponse` |
-| 202    | Still pending — no user has authorized the code yet    |
-| 400    | Invalid or expired code                                |
+| 200    | Dispositivo autorizado — retorna `AuthenticationResponse` completa |
+| 202    | Aún pendiente — ningún usuario ha autorizado el código aún |
+| 400    | Código inválido o expirado                             |
 
-**Success response (200 OK):**
+**Response exitoso (200 OK):**
 
 ```json
 {
@@ -141,18 +141,18 @@ Content-Type: application/json
 }
 ```
 
-> Store the `accessToken` on the new device — it is the JWT used for authenticated requests.
+> Almacena el `accessToken` en el nuevo dispositivo — es el JWT que se usa para solicitudes autenticadas.
 
-## Implementation Notes
+## Notas de Implementación
 
-- Device codes are stored **in-memory** — they are lost on server restart
-- Code generation uses `SecureRandom` (zero-padded 6-digit numeric)
-- On successful authorization, a `Session` document is created in MongoDB
-- If 2FA is enabled for the user, `requiredAuthenticateFor2FA` will be `true` and further authentication steps are required
+- Los códigos de dispositivo se almacenan **en memoria** — se pierden al reiniciar el servidor
+- La generación de códigos usa `SecureRandom` (numérico de 6 dígitos con ceros a la izquierda)
+- Al autorizar exitosamente, se crea un documento `Session` en MongoDB
+- Si el usuario tiene habilitado 2FA, `requiredAuthenticateFor2FA` será `true` y se requieren pasos adicionales de autenticación
 
-## Error Handling
+## Manejo de Errores
 
-All error responses use RFC 7807 Problem Details format:
+Todas las respuestas de error usan el formato RFC 7807 Problem Details:
 
 ```json
 {
@@ -164,7 +164,7 @@ All error responses use RFC 7807 Problem Details format:
 }
 ```
 
-Validation errors include a `fieldErrors` map:
+Los errores de validación incluyen un mapa `fieldErrors`:
 
 ```json
 {
