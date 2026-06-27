@@ -3,6 +3,9 @@ package alberto.cruz.mtz.glance.chat.backend.controller.rest;
 import alberto.cruz.mtz.glance.chat.backend.dto.AccessTokenResponse;
 import alberto.cruz.mtz.glance.chat.backend.dto.AuthenticationRequest;
 import alberto.cruz.mtz.glance.chat.backend.dto.AuthenticationResponse;
+import alberto.cruz.mtz.glance.chat.backend.dto.AuthorizeDeviceRequest;
+import alberto.cruz.mtz.glance.chat.backend.dto.DeviceCodeRequest;
+import alberto.cruz.mtz.glance.chat.backend.dto.DeviceCodeResponse;
 import alberto.cruz.mtz.glance.chat.backend.dto.Secret2faResponse;
 import alberto.cruz.mtz.glance.chat.backend.dto.TotpCode;
 import alberto.cruz.mtz.glance.chat.backend.dto.TotpCodeWithTemporaryTokenRequest;
@@ -128,4 +131,25 @@ public class AuthenticationController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/devices/request-code")
+    public ResponseEntity<DeviceCodeResponse> getDeviceCode(@RequestBody @Valid DeviceCodeRequest request) {
+        var response = this.authenticationService.generateDeviceCode(request.deviceName(), request.osVersion());
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/devices/authorize")
+    public ResponseEntity<Void> authorizeDevice(@RequestBody @Valid AuthorizeDeviceRequest request, Authentication authentication) {
+        String username = authentication.getName();
+        this.authenticationService.authorizeDevice(request.deviceCode(), username);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/devices/checked")
+    public ResponseEntity<?> authenticateUserWithDeviceCode(@RequestBody @Valid AuthorizeDeviceRequest request) {
+        var response = this.authenticationService.checkDeviceCodeStatus(request.deviceCode());
+
+        if (response.isEmpty()) return ResponseEntity.accepted().build();
+
+        return ResponseEntity.ok(response.get());
+    }
 }

@@ -31,7 +31,10 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(http -> {
                     http.requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/login/2fa", "/api/auth/signup").permitAll();
+                    http.requestMatchers(HttpMethod.POST, "/api/auth/devices/request-code", "/api/auth/devices/checked").permitAll();
                     http.requestMatchers(HttpMethod.POST, "/api/auth/2fa/**").authenticated();
+                    http.requestMatchers(HttpMethod.POST, "/api/auth/devices/authorize").authenticated();
+
                     http.requestMatchers("/ws").permitAll();
                     http.requestMatchers("/swagger-ui/**").permitAll();
                     http.requestMatchers("/swagger-ui.html").permitAll();
