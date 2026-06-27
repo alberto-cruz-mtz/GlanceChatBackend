@@ -1,10 +1,11 @@
 package alberto.cruz.mtz.glance.chat.backend.exception.handler;
 
+import alberto.cruz.mtz.glance.chat.backend.exception.DeviceCodeHasAlreadyBeenUsedException;
+import alberto.cruz.mtz.glance.chat.backend.exception.InvalidOrExpiredDeviceCodeException;
 import alberto.cruz.mtz.glance.chat.backend.exception.InvalidTemporaryTokenException;
 import alberto.cruz.mtz.glance.chat.backend.exception.InvalidTotpCodeException;
 import alberto.cruz.mtz.glance.chat.backend.exception.TwoFactorAuthenticationNotActiveException;
 import alberto.cruz.mtz.glance.chat.backend.exception.UsernameAlreadyInUseException;
-import alberto.cruz.mtz.glance.chat.backend.exception.InvalidOtpException;
 import alberto.cruz.mtz.glance.chat.backend.exception.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -65,6 +66,28 @@ public class AuthenticationExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, message);
         problemDetail.setType(URI.create(ERROR_URL + "/authentication"));
         problemDetail.setTitle("Authentication failed");
+
+        return ResponseEntity.status(status).body(problemDetail);
+    }
+
+    @ExceptionHandler(InvalidOrExpiredDeviceCodeException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidOrExpiredDeviceCode(InvalidOrExpiredDeviceCodeException exception) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, exception.getMessage());
+        problemDetail.setTitle("Invalid or Expired Device Code");
+        problemDetail.setType(URI.create(ERROR_URL + "/authentication/invalid-or-expired-device-code"));
+
+        return ResponseEntity.status(status).body(problemDetail);
+    }
+
+    @ExceptionHandler(DeviceCodeHasAlreadyBeenUsedException.class)
+    public ResponseEntity<ProblemDetail> handleDeviceCodeHasAlreadyBeenUsed(DeviceCodeHasAlreadyBeenUsedException exception) {
+        HttpStatus status = HttpStatus.CONFLICT;
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, exception.getMessage());
+        problemDetail.setTitle("Device Code Already Used");
+        problemDetail.setType(URI.create(ERROR_URL + "/authentication/device-code-already-used"));
 
         return ResponseEntity.status(status).body(problemDetail);
     }

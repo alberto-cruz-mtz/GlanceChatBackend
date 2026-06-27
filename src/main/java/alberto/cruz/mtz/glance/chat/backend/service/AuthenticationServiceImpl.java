@@ -4,11 +4,12 @@ import alberto.cruz.mtz.glance.chat.backend.dto.AccessTokenResponse;
 import alberto.cruz.mtz.glance.chat.backend.dto.AuthenticationResponse;
 import alberto.cruz.mtz.glance.chat.backend.dto.Device;
 import alberto.cruz.mtz.glance.chat.backend.dto.DeviceCodeResponse;
+import alberto.cruz.mtz.glance.chat.backend.exception.DeviceCodeHasAlreadyBeenUsedException;
 import alberto.cruz.mtz.glance.chat.backend.exception.InvalidJwtException;
+import alberto.cruz.mtz.glance.chat.backend.exception.InvalidOrExpiredDeviceCodeException;
 import alberto.cruz.mtz.glance.chat.backend.exception.InvalidTotpCodeException;
 import alberto.cruz.mtz.glance.chat.backend.exception.InvalidTemporaryTokenException;
 import alberto.cruz.mtz.glance.chat.backend.exception.TwoFactorAuthenticationNotActiveException;
-import alberto.cruz.mtz.glance.chat.backend.exception.UnknownException;
 import alberto.cruz.mtz.glance.chat.backend.exception.UserNotFoundException;
 import alberto.cruz.mtz.glance.chat.backend.exception.UsernameAlreadyInUseException;
 import alberto.cruz.mtz.glance.chat.backend.model.Session;
@@ -136,11 +137,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         Device device = this.sessionStorage.get(deviceCode);
 
         if (device == null || Instant.now().isAfter(device.expiration())) {
-            throw new UnknownException("Invalid or expired device code provided");
+            throw new InvalidOrExpiredDeviceCodeException("The device code is invalid or has expired. Please request a new device code.");
         }
 
         if (!device.isPending()) {
-            throw new UnknownException("Device code has already been used or is not pending authorization");
+            throw new DeviceCodeHasAlreadyBeenUsedException("Device code has already been used or is not pending authorization");
         }
 
         User user = this.findUserByUsername(username);
@@ -155,7 +156,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         Device device = this.sessionStorage.get(deviceCode);
 
         if (device == null || Instant.now().isAfter(device.expiration())) {
-            throw new UnknownException("Invalid or expired device code provided");
+            throw new InvalidOrExpiredDeviceCodeException("The device code is invalid or has expired. Please request a new device code.");
         }
 
         if (device.isPending()) return Optional.empty();
