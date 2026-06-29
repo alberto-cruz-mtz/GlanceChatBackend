@@ -48,10 +48,10 @@ Content-Type: application/json
 }
 ```
 
-| Campo        | Tipo   | Requerido | Descripción                |
-|--------------|--------|-----------|----------------------------|
-| `deviceName` | string | Sí        | Nombre del dispositivo     |
-| `osVersion`  | string | Sí        | Versión del SO del disp.   |
+| Campo        | Tipo   | Requerido | Descripción              |
+| ------------ | ------ | --------- | ------------------------ |
+| `deviceName` | string | Sí        | Nombre del dispositivo   |
+| `osVersion`  | string | Sí        | Versión del SO del disp. |
 
 **Response (200 OK):**
 
@@ -84,21 +84,22 @@ Authorization: Bearer <JWT>
 }
 ```
 
-| Campo        | Tipo   | Requerido | Descripción                              |
-|--------------|--------|-----------|------------------------------------------|
+| Campo        | Tipo   | Requerido | Descripción                                          |
+| ------------ | ------ | --------- | ---------------------------------------------------- |
 | `deviceCode` | string | Sí        | Código de 6 dígitos mostrado en el nuevo dispositivo |
 
 **Validación:**
+
 - `deviceCode` debe ser exactamente 6 dígitos (`^[0-9]{6}$`)
 
 **Respuestas:**
 
-| Estado | Descripción                                         |
-|--------|-----------------------------------------------------|
-| 204    | Dispositivo autorizado exitosamente                 |
-| 400    | Código inválido o expirado                           |
-| 404    | Usuario autenticado no encontrado                    |
-| 409    | El código ya fue utilizado por otro usuario          |
+| Estado | Descripción                                 |
+| ------ | ------------------------------------------- |
+| 204    | Dispositivo autorizado exitosamente         |
+| 400    | Código inválido o expirado                  |
+| 404    | Usuario autenticado no encontrado           |
+| 409    | El código ya fue utilizado por otro usuario |
 
 ---
 
@@ -121,11 +122,11 @@ Content-Type: application/json
 
 **Respuestas:**
 
-| Estado | Descripción                                           |
-|--------|-------------------------------------------------------|
+| Estado | Descripción                                                        |
+| ------ | ------------------------------------------------------------------ |
 | 200    | Dispositivo autorizado — retorna `AuthenticationResponse` completa |
-| 202    | Aún pendiente — ningún usuario ha autorizado el código aún |
-| 400    | Código inválido o expirado                             |
+| 202    | Aún pendiente — ningún usuario ha autorizado el código aún         |
+| 400    | Código inválido o expirado                                         |
 
 **Response exitoso (200 OK):**
 
