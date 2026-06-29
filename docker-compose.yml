@@ -1,0 +1,82 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      MONGO_HOST: mongo
+      MONGO_PORT: 27017
+      MONGO_USERNAME: root
+      MONGO_PASSWORD: 1234
+      MONGO_DATABASE: glance_chat
+      JWT_SECRET: your_jwt_secret_key
+      JWT_EXPIRATION: 3600000
+      JWT_ISSUER: glance_chat_backend
+      MAIL_HOST: smtp.example.com
+      MAIL_PORT: 587
+      MAIL_USERNAME: username
+      MAIL_PASSWORD: password
+      AWS_ACCESS_KEY: admin
+      AWS_SECRET_KEY: 123456789
+      AWS_S3_BUCKET_NAME: avatars
+      AWS_REGION: us-east-1
+      AWS_S3_URL: http://minio:9000
+      AWS_S3_PUBLIC_URL: http://minio:9000/avatars
+      ERROR_URL: http://localhost:8080/error
+    depends_on:
+      mongo:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 1234
+      MONGO_INITDB_DATABASE: glance_chat
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: mongosh --quiet -u root -p 1234 --authenticationDatabase admin --eval 'db.adminCommand("ping")' 2>/dev/null
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: 123456789
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: curl -sf http://localhost:9000/minio/health/live
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  minio-setup:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      until mc config host add myminio http://minio:9000 admin 123456789 2>/dev/null; do echo 'Waiting for MinIO...'; sleep 2; done;
+      mc mb myminio/avatars --ignore-existing;
+      mc anonymous set public myminio/avatars;
+      echo 'MinIO bucket avatars ready';
+      "
+
+volumes:
+  mongo_data:
+  minio_data:
