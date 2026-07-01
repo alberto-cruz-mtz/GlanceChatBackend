@@ -23,7 +23,7 @@ import java.net.URI;
 public class AuthenticationExceptionHandler {
 
     @Value("${error.url}")
-    private static String ERROR_URL;
+    private String ERROR_URL;
 
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleUserNotFound(UserNotFoundException exception) {

@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
     @Value("${error.url}")
-    private static String ERROR_URL;
+    private String ERROR_URL;
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ProblemDetail> handleValidationExceptions(MethodArgumentNotValidException ex) {
