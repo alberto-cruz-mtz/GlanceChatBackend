@@ -8,6 +8,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -20,6 +21,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfiguration {
 
     @Bean
@@ -30,10 +32,15 @@ public class SecurityConfiguration {
                 .cors(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(http -> {
-                    http.requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/login/2fa", "/api/auth/signup").permitAll();
+                    http.requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/signup").permitAll();
+
+                    http.requestMatchers(HttpMethod.POST, "/api/auth/2fa/login").permitAll();
+                    http.requestMatchers(HttpMethod.POST, "/api/auth/2fa/generate", "/api/auth/2fa/enable").authenticated();
+
                     http.requestMatchers(HttpMethod.POST, "/api/auth/devices/request-code", "/api/auth/devices/checked").permitAll();
-                    http.requestMatchers(HttpMethod.POST, "/api/auth/2fa/**").authenticated();
                     http.requestMatchers(HttpMethod.POST, "/api/auth/devices/authorize").authenticated();
+
+                    http.requestMatchers("/api/profiles/**").authenticated();
 
                     http.requestMatchers("/ws").permitAll();
                     http.requestMatchers("/swagger-ui/**").permitAll();
