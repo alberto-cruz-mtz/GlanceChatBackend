@@ -12,15 +12,4 @@ public interface AuthenticationService {
 
     AuthenticationResponse authenticate(String username, String password);
 
-    String generateSecretForActive2fa(String username);
-
-    void validateTheFirstOtpCodeAndActive2fa(String username, String code);
-
-    AccessTokenResponse verifyTotpCodeAndGenerateAccessToken(String token, String code);
-
-    DeviceCodeResponse generateDeviceCode(String deviceName, String os);
-
-    void authorizeDevice(String deviceCode, String username);
-
-    Optional<AuthenticationResponse> checkDeviceCodeStatus(String deviceCode);
 }
