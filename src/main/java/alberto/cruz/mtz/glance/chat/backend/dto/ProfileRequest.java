@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Size;
 
 public record ProfileRequest(
         @Size(min = 5, max = 50, message = "The displayName must be between 5 and 50 characters")
-        @NotEmpty(message = "The displayName is required") String displayName
+        @NotEmpty(message = "The displayName is required")
+        String displayName
 ) {
 }
