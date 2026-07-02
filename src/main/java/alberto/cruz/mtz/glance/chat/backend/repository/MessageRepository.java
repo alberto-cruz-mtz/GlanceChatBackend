@@ -1,12 +1,17 @@
 package alberto.cruz.mtz.glance.chat.backend.repository;
 
 import alberto.cruz.mtz.glance.chat.backend.model.Message;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
+
+import java.util.List;
 
 public interface MessageRepository extends MongoRepository<Message, String> {
 
-    Slice<Message> findByConversationId(String conversationId, Pageable pageable);
+    @Query(value = "{conversation_ids:  ?0}", sort = "{sent_at:  -1}")
+    Slice<Message> findByConversationIds(String conversationIds, Pageable pageable);
 
 }
