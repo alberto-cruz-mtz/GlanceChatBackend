@@ -4,6 +4,7 @@ import alberto.cruz.mtz.glance.chat.backend.dto.MessageRequest;
 import alberto.cruz.mtz.glance.chat.backend.dto.MessageResponse;
 import alberto.cruz.mtz.glance.chat.backend.exception.UnauthorizedAccessException;
 import alberto.cruz.mtz.glance.chat.backend.service.ChatService;
+import alberto.cruz.mtz.glance.chat.backend.service.MessageService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -12,12 +13,14 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
+import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
 public class ChatMessageController {
 
     private final SimpMessagingTemplate simpMessagingTemplate;
+    private final MessageService messageService;
     private final ChatService chatService;
 
     @MessageMapping("chat.message.send")
@@ -32,9 +35,10 @@ public class ChatMessageController {
 
         String chatIdOfSender = chatService.recordMessageAndCreateConversationIfNeeded(senderId, recipientId, content);
         String chatIdOfRecipient = chatService.recordMessageAndCreateConversationIfNeeded(recipientId, senderId, content);
+        String messageId = messageService.saveMessage(List.of(chatIdOfSender, chatIdOfRecipient), senderId, content);
 
-        MessageResponse messageResponseForSender = new MessageResponse(content, chatIdOfSender, senderId);
-        MessageResponse messageResponseForRecipient = new MessageResponse(content, chatIdOfRecipient, senderId);
+        MessageResponse messageResponseForSender = new MessageResponse(messageId, content, chatIdOfSender, senderId);
+        MessageResponse messageResponseForRecipient = new MessageResponse(messageId, content, chatIdOfRecipient, senderId);
 
         simpMessagingTemplate.convertAndSendToUser(senderId, "/queue/private.messages", messageResponseForSender);
         simpMessagingTemplate.convertAndSendToUser(recipientId, "/queue/private.messages", messageResponseForRecipient);

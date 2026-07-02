@@ -3,7 +3,9 @@ package alberto.cruz.mtz.glance.chat.backend.controller.rest;
 import alberto.cruz.mtz.glance.chat.backend.dto.ChatRequest;
 import alberto.cruz.mtz.glance.chat.backend.dto.ChatResponse;
 import alberto.cruz.mtz.glance.chat.backend.dto.DataResponse;
+import alberto.cruz.mtz.glance.chat.backend.dto.MessageResponse;
 import alberto.cruz.mtz.glance.chat.backend.service.ChatService;
+import alberto.cruz.mtz.glance.chat.backend.service.MessageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -14,6 +16,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +38,7 @@ import java.util.Objects;
 public class ChatController {
 
     private final ChatService chatService;
+    private final MessageService messageService;
 
     @Operation(
             summary = "Create a new chat",
@@ -284,4 +289,27 @@ public class ChatController {
         var response = chatService.getChat(userId, chatId);
         return ResponseEntity.ok(response);
     }
+
+    @Operation(
+            summary = "Get messages by chat ID",
+            description = "Retrieves messages for a specific conversation. Only the owner of the conversation can access its messages.",
+            method = "GET",
+            parameters = {
+                    @Parameter(name = "chatId", description = "Unique identifier of the conversation", required = true),
+                    @Parameter(name = "page", description = "Page number for pagination"),
+                    @Parameter(name = "size", description = "Number of messages per page")
+            },
+            tags = {"Chat", "Messages", "Requires Authentication"}
+    )
+    @GetMapping("/{chatId}/message")
+    public ResponseEntity<DataResponse<MessageResponse>> getMessageByChat(
+            @PathVariable String chatId,
+            @PageableDefault Pageable pageable
+    ) {
+
+        var response = messageService.getMessagesByConversationId(pageable, chatId);
+        return ResponseEntity.ok(response);
+    }
+
+
 }
