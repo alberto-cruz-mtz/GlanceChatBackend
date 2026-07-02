@@ -66,7 +66,7 @@ public class ChatServiceImpl implements ChatService {
                     return new ChatResponse(conversation.getId(), recipientInfo);
                 }).toList();
 
-        return new DataResponse<>(chats);
+        return new DataResponse<>(chats, null);
     }
 
     @Override
