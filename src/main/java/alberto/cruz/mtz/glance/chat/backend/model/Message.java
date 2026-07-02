@@ -12,6 +12,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.Instant;
+import java.util.List;
 
 @Builder
 @NoArgsConstructor
@@ -26,10 +27,10 @@ public class Message {
     private String id;
 
     /**
-     * Conversación a la que pertenece este mensaje.
+     * Conversaciones a los que pertenece el mensaje
      */
-    @Field("conversation_id")
-    private String conversationId;
+    @Field("conversation_ids")
+    private List<String> conversationIds;
 
     /**
      * Usuario que envió el mensaje.
@@ -55,8 +56,9 @@ public class Message {
      * Fecha y hora exacta en que el servidor persistió el mensaje.
      * Se establece en la capa de servicio antes de guardar.
      */
+    @Builder.Default
     @Field("sent_at")
-    private Instant sentAt;
+    private Instant sentAt = Instant.now();
 
     /**
      * Cuando el mensaje fue entregado al dispositivo del destinatario.
