@@ -18,6 +18,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -29,7 +33,7 @@ public class SecurityConfiguration {
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
                 //TODO: Volver activar la configuración de CORS
-                .cors(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(this.corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(http -> {
                     http.requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/signup").permitAll();
@@ -48,6 +52,7 @@ public class SecurityConfiguration {
                     http.requestMatchers("/v3/api-docs/**").permitAll();
 
                     http.requestMatchers("/api/chats/**").authenticated();
+                    http.requestMatchers(HttpMethod.GET, "/api/upload/presigned-url").authenticated();
 
                     http.anyRequest().denyAll();
                 })
@@ -67,6 +72,15 @@ public class SecurityConfiguration {
         return provider;
     }
 
+    public UrlBasedCorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONAL"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
