@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
-import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -46,6 +45,13 @@ public class Message {
     private String content;
 
     /**
+     * Metadatos dinámicos para archivos multimedia o documentos.
+     * Será nulo si el tipo de mensaje es puramente TEXT.
+     */
+    @Field("metadata")
+    private MessageMetadataModel metadata;
+
+    /**
      * Estado de lectura del mensaje.
      * Transiciones válidas: SENT → DELIVERED → READ.
      */
@@ -74,4 +80,33 @@ public class Message {
      */
     @Field("deleted_at")
     private Instant deletedAt;
+
+    /**
+     * Clase que representa el sub-documento de metadatos en MongoDB.
+     */
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    public static class MessageMetadataModel {
+
+        @Field("file_name")
+        private String fileName;
+
+        @Field("size_bytes")
+        private Long sizeBytes;
+
+        @Field("width")
+        private Integer width;
+
+        @Field("height")
+        private Integer height;
+
+        @Field("duration_seconds")
+        private Integer durationSeconds;
+
+        @Field("mime_type")
+        private String mimeType;
+    }
 }
