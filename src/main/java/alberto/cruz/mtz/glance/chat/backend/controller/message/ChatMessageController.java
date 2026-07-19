@@ -7,14 +7,17 @@ import alberto.cruz.mtz.glance.chat.backend.service.ChatService;
 import alberto.cruz.mtz.glance.chat.backend.service.MessageService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
+import java.time.Instant;
 import java.util.List;
 
+@Slf4j
 @Controller
 @RequiredArgsConstructor
 public class ChatMessageController {
@@ -29,6 +32,8 @@ public class ChatMessageController {
         String recipientId = messageRequest.recipientId();
         String content = messageRequest.content();
 
+        log.info("Reciviendo mensaje de {}", senderId);
+
         if (!senderId.equals(messageRequest.senderId())) {
             throw new UnauthorizedAccessException("Sender ID does not match the authenticated user");
         }
@@ -37,8 +42,10 @@ public class ChatMessageController {
         String chatIdOfRecipient = chatService.recordMessageAndCreateConversationIfNeeded(recipientId, senderId, content);
         String messageId = messageService.saveMessage(List.of(chatIdOfSender, chatIdOfRecipient), senderId, content);
 
-        MessageResponse messageResponseForSender = new MessageResponse(messageId, content, chatIdOfSender, senderId);
-        MessageResponse messageResponseForRecipient = new MessageResponse(messageId, content, chatIdOfRecipient, senderId);
+        Instant now = Instant.now();
+
+        MessageResponse messageResponseForSender = new MessageResponse(messageId, content, chatIdOfSender, senderId, now, messageRequest.type(), messageRequest.metadata());
+        MessageResponse messageResponseForRecipient = new MessageResponse(messageId, content, chatIdOfRecipient, senderId, now, messageRequest.type(), messageRequest.metadata());
 
         simpMessagingTemplate.convertAndSendToUser(senderId, "/queue/private.messages", messageResponseForSender);
         simpMessagingTemplate.convertAndSendToUser(recipientId, "/queue/private.messages", messageResponseForRecipient);
