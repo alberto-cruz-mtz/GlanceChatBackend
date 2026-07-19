@@ -1,13 +1,14 @@
 package alberto.cruz.mtz.glance.chat.backend.service;
 
+import alberto.cruz.mtz.glance.chat.backend.dto.ContentType;
 import alberto.cruz.mtz.glance.chat.backend.dto.DataResponse;
+import alberto.cruz.mtz.glance.chat.backend.dto.MessageMetadata;
 import alberto.cruz.mtz.glance.chat.backend.dto.PaginationLinks;
 import alberto.cruz.mtz.glance.chat.backend.dto.MessageResponse;
 import alberto.cruz.mtz.glance.chat.backend.dto.Pagination;
 import alberto.cruz.mtz.glance.chat.backend.model.Message;
 import alberto.cruz.mtz.glance.chat.backend.repository.MessageRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -50,7 +51,17 @@ public class MessageServiceImpl implements MessageService {
                         message.getId(),
                         message.getContent(),
                         conversationId,
-                        message.getSenderId()
+                        message.getSenderId(),
+                        message.getSentAt(),
+                        ContentType.valueOf(message.getMetadata().getMimeType()),
+                        new MessageMetadata(
+                                message.getMetadata().getFileName(),
+                                message.getMetadata().getSizeBytes(),
+                                message.getMetadata().getWidth(),
+                                message.getMetadata().getHeight(),
+                                message.getMetadata().getDurationSeconds(),
+                                message.getMetadata().getMimeType()
+                        )
                 ))
                 .toList();
 
