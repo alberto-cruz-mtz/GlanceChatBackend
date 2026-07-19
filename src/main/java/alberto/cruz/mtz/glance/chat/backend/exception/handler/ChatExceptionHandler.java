@@ -17,7 +17,7 @@ import java.net.URI;
 public class ChatExceptionHandler {
 
     @Value("${error.url}")
-    private static String ERROR_URL;
+    private String ERROR_URL;
 
     @ExceptionHandler({InvalidPublicIdException.class})
     public ResponseEntity<ProblemDetail> handleInvalidPublicId(InvalidPublicIdException exception) {
