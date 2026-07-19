@@ -41,10 +41,10 @@ public class ChatServiceImpl implements ChatService {
         Conversation conversation = new Conversation(null, userId, recipient.getId(), null, Instant.now());
         Conversation createdConversation = conversationRepository.save(conversation);
 
-        String recipientName = recipient.getDisplayName() != null ? recipient.getDisplayName() : recipient.getUsername();
-        Recipient recipientInfo = new Recipient(recipient.getId(), recipientName, recipient.getAvatarUrl());
+        String recipientName = getRecipientNameFromUser(recipient);
+        Recipient recipientInfo = new Recipient(recipient.getId(), recipientPublicId, recipientName, recipient.getAvatarUrl());
 
-        return new ChatResponse(createdConversation.getId(), recipientInfo);
+        return new ChatResponse(createdConversation.getId(), recipientInfo, null);
     }
 
     @Override
@@ -61,9 +61,11 @@ public class ChatServiceImpl implements ChatService {
                 .map(conversation -> {
                     User recipient = recipients.get(conversation.getRecipientId());
 
-                    String recipientName = recipient.getDisplayName() != null ? recipient.getDisplayName() : recipient.getUsername();
-                    Recipient recipientInfo = new Recipient(recipient.getId(), recipientName, recipient.getAvatarUrl());
-                    return new ChatResponse(conversation.getId(), recipientInfo);
+                    String recipientName = getRecipientNameFromUser(recipient);
+                    Recipient recipientInfo = new Recipient(recipient.getId(), recipient.getPublicId(), recipientName, recipient.getAvatarUrl());
+
+                    String lastMessage = getMessageContent(conversation.getLastMessage());
+                    return new ChatResponse(conversation.getId(), recipientInfo, lastMessage);
                 }).toList();
 
         return new DataResponse<>(chats, null);
@@ -81,10 +83,11 @@ public class ChatServiceImpl implements ChatService {
         User recipient = userRepository.findById(conversation.getRecipientId())
                 .orElseThrow(() -> new UserNotFoundException("Recipient not found"));
 
-        String recipientName = recipient.getDisplayName() != null ? recipient.getDisplayName() : recipient.getUsername();
-        Recipient recipientInfo = new Recipient(recipient.getId(), recipientName, recipient.getAvatarUrl());
+        String recipientName = getRecipientNameFromUser(recipient);
+        Recipient recipientInfo = new Recipient(recipient.getId(), recipient.getPublicId(), recipientName, recipient.getAvatarUrl());
 
-        return new ChatResponse(conversation.getId(), recipientInfo);
+        String lastMessage = getMessageContent(conversation.getLastMessage());
+        return new ChatResponse(conversation.getId(), recipientInfo, lastMessage);
     }
 
     @Override
@@ -101,4 +104,11 @@ public class ChatServiceImpl implements ChatService {
                 });
     }
 
+    private String getRecipientNameFromUser(User recipient) {
+        return recipient.getDisplayName() != null ? recipient.getDisplayName() : recipient.getUsername();
+    }
+
+    private String getMessageContent(LastMessage lastMessage) {
+        return lastMessage != null ? lastMessage.getContent() : null;
+    }
 }
