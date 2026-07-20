@@ -52,7 +52,7 @@ public class SecurityConfiguration {
                     http.requestMatchers("/v3/api-docs/**").permitAll();
 
                     http.requestMatchers("/api/chats/**").authenticated();
-                    http.requestMatchers(HttpMethod.GET, "/api/upload/presigned-url").authenticated();
+                    http.requestMatchers(HttpMethod.POST, "/api/upload/presigned-url").authenticated();
 
                     http.anyRequest().denyAll();
                 })
