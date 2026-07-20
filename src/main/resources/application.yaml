@@ -30,10 +30,12 @@ mail:
 
 aws:
   s3:
-    access-key: ${AWS_ACCESS_KEY:admin}
-    secret-key: ${AWS_SECRET_KEY:123456789}
+    access-key: ${AWS_ACCESS_KEY:d80172922c5f5061d9339422e399b423}
+    secret-key: ${AWS_SECRET_KEY:ef9fd319b33b4d2942101b9554db584052d55bcb41c24182b8d99a56514c48d1}
     bucket-name: ${AWS_S3_BUCKET_NAME:avatars}
-    region: ${AWS_REGION:us-east-1}
-    url: ${AWS_S3_URL:http://localhost:9000}
-    public-url: ${AWS_S3_PUBLIC_URL:http://localhost:9000/avatars}  # host/bucket
+    bucket-name-chat: ${AWS_S3_BUCKET_NAME_CHAT:messages-chat}
+    region: ${AWS_REGION:auto}
+    url: ${AWS_S3_URL:https://727ea82a888f734a4cd41ab71c31be12.r2.cloudflarestorage.com}
+    public-url: ${AWS_S3_PUBLIC_URL:https://pub-eb5eb6c24ed14ddd9af8abcf095b68ee.r2.dev} # host/bucket
+    public-url-chat: ${AWS_S3_PUBLIC_URL_CHAT:https://pub-cfdbf38261f545fb93986eb5cf9b3d39.r2.dev} # host/bucket
 
