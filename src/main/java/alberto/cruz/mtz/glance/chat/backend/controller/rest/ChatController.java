@@ -360,7 +360,8 @@ public class ChatController {
             @RequestParam(defaultValue = "50") @Min(1) @Max(100) int limit
     ) {
         // Server-side enforced sort — clients cannot override it.
-        Pageable pageable = PageRequest.of(0, limit + 1, Sort.by(Sort.Direction.DESC, "sentAt"));
+        // The service is responsible for the +1 probe; we pass the requested size as-is.
+        Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "sentAt"));
 
         var response = messageService.getMessagesByConversationId(chatId, before, pageable);
         return ResponseEntity.ok(response);

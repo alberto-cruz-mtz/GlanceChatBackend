@@ -8,6 +8,7 @@ import alberto.cruz.mtz.glance.chat.backend.dto.MessageResponse;
 import alberto.cruz.mtz.glance.chat.backend.model.Message;
 import alberto.cruz.mtz.glance.chat.backend.repository.MessageRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -38,13 +39,21 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public DataResponse<MessageResponse> getMessagesByConversationId(String conversationId, Instant before, Pageable pageable) {
-        // Ask for one extra message to detect if there's a next page without a separate count query.
-        List<Message> fetched = (before == null)
-                ? messageRepository.findByConversationIds(conversationId, pageable)
-                : messageRepository.findOlderByConversationIds(conversationId, before, pageable);
+        // The incoming Pageable carries the client-requested size. We fetch one extra message
+        // (a "probe") to detect if there are more messages without a separate count query.
+        int requestedSize = pageable.getPageSize();
+        Pageable probePageable = PageRequest.of(
+                pageable.getPageNumber(),
+                requestedSize + 1,
+                pageable.getSort()
+        );
 
-        boolean hasNext = fetched.size() > pageable.getPageSize();
-        List<Message> page = hasNext ? fetched.subList(0, pageable.getPageSize()) : fetched;
+        List<Message> fetched = (before == null)
+                ? messageRepository.findByConversationIds(conversationId, probePageable)
+                : messageRepository.findOlderByConversationIds(conversationId, before, probePageable);
+
+        boolean hasNext = fetched.size() > requestedSize;
+        List<Message> page = hasNext ? fetched.subList(0, requestedSize) : fetched;
 
         // nextCursor = sentAt of the oldest message in this page. Null when no more pages.
         String nextCursor = hasNext
