@@ -40,7 +40,7 @@ public class ChatMessageController {
 
         String chatIdOfSender = chatService.recordMessageAndCreateConversationIfNeeded(senderId, recipientId, content);
         String chatIdOfRecipient = chatService.recordMessageAndCreateConversationIfNeeded(recipientId, senderId, content);
-        String messageId = messageService.saveMessage(List.of(chatIdOfSender, chatIdOfRecipient), senderId, content);
+        String messageId = messageService.saveMessage(List.of(chatIdOfSender, chatIdOfRecipient), messageRequest);
 
         Instant now = Instant.now();
 
