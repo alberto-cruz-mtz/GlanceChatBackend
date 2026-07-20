@@ -1,5 +1,7 @@
 package alberto.cruz.mtz.glance.chat.backend.model;
 
+import alberto.cruz.mtz.glance.chat.backend.dto.ContentType;
+import alberto.cruz.mtz.glance.chat.backend.dto.MessageMetadata;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -43,6 +45,9 @@ public class Message {
      * Null cuando el mensaje ha sido eliminado (ver deletedAt).
      */
     private String content;
+
+    @Builder.Default
+    private ContentType type = ContentType.TEXT;
 
     /**
      * Metadatos dinámicos para archivos multimedia o documentos.
@@ -92,21 +97,34 @@ public class Message {
     public static class MessageMetadataModel {
 
         @Field("file_name")
-        private String fileName;
+        private String fileName = "";
 
         @Field("size_bytes")
-        private Long sizeBytes;
+        private Long sizeBytes = 0L;
 
         @Field("width")
-        private Integer width;
+        private Integer width = 0;
 
         @Field("height")
-        private Integer height;
+        private Integer height = 0;
 
         @Field("duration_seconds")
-        private Integer durationSeconds;
+        private Integer durationSeconds = 0;
 
         @Field("mime_type")
         private String mimeType;
+
+        public static MessageMetadataModel from(MessageMetadata metadata) {
+            if (metadata == null) return null;
+
+            return MessageMetadataModel.builder()
+                    .fileName(metadata.fileName())
+                    .sizeBytes(metadata.sizeBytes())
+                    .width(metadata.width())
+                    .height(metadata.height())
+                    .durationSeconds(metadata.durationSeconds())
+                    .mimeType(metadata.mimeType())
+                    .build();
+        }
     }
 }
