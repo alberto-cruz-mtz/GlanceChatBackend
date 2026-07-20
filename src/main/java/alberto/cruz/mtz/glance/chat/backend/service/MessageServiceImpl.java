@@ -1,18 +1,17 @@
 package alberto.cruz.mtz.glance.chat.backend.service;
 
-import alberto.cruz.mtz.glance.chat.backend.dto.ContentType;
+import alberto.cruz.mtz.glance.chat.backend.dto.CursorPage;
 import alberto.cruz.mtz.glance.chat.backend.dto.DataResponse;
 import alberto.cruz.mtz.glance.chat.backend.dto.MessageMetadata;
 import alberto.cruz.mtz.glance.chat.backend.dto.MessageRequest;
-import alberto.cruz.mtz.glance.chat.backend.dto.PaginationLinks;
 import alberto.cruz.mtz.glance.chat.backend.dto.MessageResponse;
-import alberto.cruz.mtz.glance.chat.backend.dto.Pagination;
 import alberto.cruz.mtz.glance.chat.backend.model.Message;
 import alberto.cruz.mtz.glance.chat.backend.repository.MessageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -23,12 +22,13 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public String saveMessage(List<String> conversationIds, MessageRequest request) {
-        Message.MessageMetadataModel metadata = Message.MessageMetadataModel.from(request.metadata()); // Convertir MessageMetadata a MessageMetadataModel
+        Message.MessageMetadataModel metadata = Message.MessageMetadataModel.from(request.metadata());
 
         Message message = Message.builder()
                 .conversationIds(conversationIds)
                 .senderId(request.senderId())
                 .content(request.content())
+                .type(request.type())
                 .metadata(metadata)
                 .build();
 
@@ -37,20 +37,21 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public DataResponse<MessageResponse> getMessagesByConversationId(Pageable pageable, String conversationId) {
-        var messagePage = messageRepository.findByConversationIds(conversationId, pageable);
+    public DataResponse<MessageResponse> getMessagesByConversationId(String conversationId, Instant before, Pageable pageable) {
+        // Ask for one extra message to detect if there's a next page without a separate count query.
+        List<Message> fetched = (before == null)
+                ? messageRepository.findByConversationIds(conversationId, pageable)
+                : messageRepository.findOlderByConversationIds(conversationId, before, pageable);
 
-        int currentPage = messagePage.getNumber();
-        int perPage = messagePage.getSize();
+        boolean hasNext = fetched.size() > pageable.getPageSize();
+        List<Message> page = hasNext ? fetched.subList(0, pageable.getPageSize()) : fetched;
 
-        String prev = messagePage.hasPrevious() ? "http://localhost:8080/api/messages?page=" + (currentPage - 1) + "&size=" + perPage : null;
-        String next = messagePage.hasNext() ? "http://localhost:8080/api/messages?page=" + (currentPage + 1) + "&size=" + perPage : null;
+        // nextCursor = sentAt of the oldest message in this page. Null when no more pages.
+        String nextCursor = hasNext
+                ? page.get(page.size() - 1).getSentAt().toString()
+                : null;
 
-        PaginationLinks links = new PaginationLinks(prev, next);
-
-        Pagination paginationRequest = new Pagination(currentPage, perPage, messagePage.getNumberOfElements(), messagePage.hasNext(), links);
-
-        List<MessageResponse> messages = messagePage
+        List<MessageResponse> messages = page.stream()
                 .map(message -> {
                     var metadata = new MessageMetadata(
                             message.getMetadata() != null ? message.getMetadata().getFileName() : null,
@@ -73,6 +74,6 @@ public class MessageServiceImpl implements MessageService {
                 })
                 .toList();
 
-        return new DataResponse<>(messages, paginationRequest);
+        return new DataResponse<>(messages, new CursorPage(nextCursor));
     }
 }

@@ -2,6 +2,7 @@ package alberto.cruz.mtz.glance.chat.backend.controller.rest;
 
 import alberto.cruz.mtz.glance.chat.backend.dto.ChatRequest;
 import alberto.cruz.mtz.glance.chat.backend.dto.ChatResponse;
+import alberto.cruz.mtz.glance.chat.backend.dto.CursorPage;
 import alberto.cruz.mtz.glance.chat.backend.dto.DataResponse;
 import alberto.cruz.mtz.glance.chat.backend.dto.MessageResponse;
 import alberto.cruz.mtz.glance.chat.backend.service.ChatService;
@@ -15,25 +16,32 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Instant;
 import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/chats")
 @RequiredArgsConstructor
+@Validated
 @Tag(name = "Chat", description = "Chat and conversation management")
 public class ChatController {
 
@@ -292,22 +300,69 @@ public class ChatController {
 
     @Operation(
             summary = "Get messages by chat ID",
-            description = "Retrieves messages for a specific conversation. Only the owner of the conversation can access its messages.",
+            description = """
+                    Retrieves messages for a specific conversation using cursor-based pagination.
+
+                    - First call: omit `before` to get the most recent messages.
+                    - Subsequent calls (e.g. on scroll-up): pass the `nextCursor` returned by the previous
+                      response as `before` to fetch strictly older messages.
+                    - The response includes `metadata.nextCursor`; when it is `null`, there are no more
+                      older messages to load.
+                    """,
             method = "GET",
             parameters = {
                     @Parameter(name = "chatId", description = "Unique identifier of the conversation", required = true),
-                    @Parameter(name = "page", description = "Page number for pagination"),
-                    @Parameter(name = "size", description = "Number of messages per page")
+                    @Parameter(name = "before", description = "ISO-8601 instant. Returns messages strictly older than this value. Omit for the first page."),
+                    @Parameter(name = "limit", description = "Number of messages to return. Between 1 and 100. Defaults to 50.")
             },
             tags = {"Chat", "Messages", "Requires Authentication"}
     )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Messages retrieved successfully",
+                    content = @Content(
+                            schema = @Schema(implementation = DataResponse.class),
+                            examples = @ExampleObject(
+                                    name = "Example Response",
+                                    summary = "An example response with a nextCursor",
+                                    value = """
+                                            {
+                                              "data": [
+                                                {
+                                                  "id": "6a4455d22086f25f7da4dee7",
+                                                  "content": "Hola!",
+                                                  "chatId": "6a3e157559cddb4b8398f622",
+                                                  "senderId": "6a2cabbf7b3f2ebf959d3c52",
+                                                  "sendAt": "2026-07-20T10:30:00Z",
+                                                  "type": "TEXT",
+                                                  "metadata": null
+                                                }
+                                              ],
+                                              "metadata": {
+                                                "nextCursor": "2026-07-20T10:30:00Z"
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid limit or malformed `before` cursor",
+                    content = @Content(schema = @Schema(implementation = ProblemDetail.class))
+            )
+    })
     @GetMapping("/{chatId}/message")
     public ResponseEntity<DataResponse<MessageResponse>> getMessageByChat(
             @PathVariable String chatId,
-            @PageableDefault Pageable pageable
+            @RequestParam(required = false) Instant before,
+            @RequestParam(defaultValue = "50") @Min(1) @Max(100) int limit
     ) {
+        // Server-side enforced sort — clients cannot override it.
+        Pageable pageable = PageRequest.of(0, limit + 1, Sort.by(Sort.Direction.DESC, "sentAt"));
 
-        var response = messageService.getMessagesByConversationId(pageable, chatId);
+        var response = messageService.getMessagesByConversationId(chatId, before, pageable);
         return ResponseEntity.ok(response);
     }
 
