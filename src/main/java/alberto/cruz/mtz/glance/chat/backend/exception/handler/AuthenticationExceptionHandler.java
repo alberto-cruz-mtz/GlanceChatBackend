@@ -60,7 +60,7 @@ public class AuthenticationExceptionHandler {
 
     @ExceptionHandler({UsernameNotFoundException.class, BadCredentialsException.class})
     public ResponseEntity<ProblemDetail> handleAuthentication(AuthenticationException exception) {
-        HttpStatus status = HttpStatus.FORBIDDEN;
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
         String message = "Credentials incorrect, Please verify your credentials";
 
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, message);
