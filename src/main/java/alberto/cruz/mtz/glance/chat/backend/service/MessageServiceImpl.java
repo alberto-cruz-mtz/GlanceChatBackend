@@ -1,5 +1,6 @@
 package alberto.cruz.mtz.glance.chat.backend.service;
 
+import alberto.cruz.mtz.glance.chat.backend.dto.ContentType;
 import alberto.cruz.mtz.glance.chat.backend.dto.CursorPage;
 import alberto.cruz.mtz.glance.chat.backend.dto.DataResponse;
 import alberto.cruz.mtz.glance.chat.backend.dto.MessageMetadata;
@@ -24,11 +25,12 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public String saveMessage(List<String> conversationIds, MessageRequest request) {
         Message.MessageMetadataModel metadata = Message.MessageMetadataModel.from(request.metadata());
+        String content = this.identifyContentType(request.content(), request.type());
 
         Message message = Message.builder()
                 .conversationIds(conversationIds)
                 .senderId(request.senderId())
-                .content(request.content())
+                .content(content)
                 .type(request.type())
                 .metadata(metadata)
                 .build();
@@ -84,5 +86,15 @@ public class MessageServiceImpl implements MessageService {
                 .toList();
 
         return new DataResponse<>(messages, new CursorPage(nextCursor));
+    }
+
+    private String identifyContentType(String content, ContentType type) {
+        return switch (type) {
+            case AUDIO -> "audio";
+            case IMAGE -> "image";
+            case VIDEO -> "video";
+            case FILE -> "file";
+            case TEXT -> content;
+        };
     }
 }
