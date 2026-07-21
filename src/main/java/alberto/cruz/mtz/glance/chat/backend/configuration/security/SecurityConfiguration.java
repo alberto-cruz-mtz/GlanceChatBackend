@@ -53,6 +53,7 @@ public class SecurityConfiguration {
 
                     http.requestMatchers("/api/chats/**").authenticated();
                     http.requestMatchers(HttpMethod.POST, "/api/upload/presigned-url").authenticated();
+                    http.requestMatchers(HttpMethod.GET, "/health").permitAll();
 
                     http.anyRequest().denyAll();
                 })
@@ -74,7 +75,7 @@ public class SecurityConfiguration {
 
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedOrigins(List.of("http://localhost:5173", "capacitor://localhost", "http://localhost"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONAL"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
