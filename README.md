@@ -2,7 +2,7 @@
 
 Backend de **Glance Chat**, una aplicación de mensajería instantánea pensada como una alternativa a WhatsApp y Signal.
 Este repositorio contiene únicamente el **servidor (API REST + WebSocket)**; el frontend y la app móvil viven en
-repositorios separados.
+repositorios separados [glance-chat-web](https://github.com/alberto-cruz-mtz/glance-chat-web/edit/main/README.md).
 
 ---
 
