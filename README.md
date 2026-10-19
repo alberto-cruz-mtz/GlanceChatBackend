@@ -1,20 +1,27 @@
 # Glance Chat — Backend
 
-Backend de **Glance Chat**, una aplicación de mensajería instantánea pensada como una alternativa a WhatsApp y Signal. Este repositorio contiene únicamente el **servidor (API REST + WebSocket)**; el frontend y la app móvil viven en repositorios separados.
+Backend de **Glance Chat**, una aplicación de mensajería instantánea pensada como una alternativa a WhatsApp y Signal.
+Este repositorio contiene únicamente el **servidor (API REST + WebSocket)**; el frontend y la app móvil viven en
+repositorios separados.
 
 ---
 
 ## 🤔 ¿Por qué existe este proyecto?
 
-En México, desde hace algunos años, el registro de líneas telefónicas está vinculado a la identidad personal mediante la **CURP** (Clave Única de Registro de Población). Esto significa que, para activar una línea, es obligatorio presentar (y validar) un documento de identidad oficial — un requisito que no todas las personas pueden o quieren cumplir.
+En México, desde hace algunos meses, el registro de líneas telefónicas está vinculado a la identidad personal mediante
+la **CURP** (Clave Única de Registro de Población). Esto significa que, para activar una línea, es obligatorio presentar
+(y validar) un documento de identidad oficial — un requisito que no todas las personas pueden o quieren cumplir.
 
-La consecuencia práctica es clara: **una parte de la población queda excluida de las apps de mensajería que exigen un número celular** (WhatsApp, Signal, Telegram, etc.), ya sea porque:
+La consecuencia práctica es clara: **una parte de la población queda excluida de las apps de mensajería que exigen un
+número celular** (WhatsApp, Signal, Telegram, etc.), ya sea porque:
 
 - No tienen acceso a una línea telefónica propia.
 - El proceso de registro/portabilidad es burocrático o lento.
 - Prefieren no vincular su identidad oficial a una cuenta de mensajería.
 
-**Glance Chat elimina esa barrera**: en lugar de pedir un número telefónico, usa un **nombre de usuario único** como identificador. Cualquier persona puede crear una cuenta en segundos, sin necesidad de SIM, sin CURP y sin verificación conyuntural con operadores telefónicos.
+**Glance Chat elimina esa barrera**: en lugar de pedir un número telefónico, usa un **nombre de usuario único** como
+identificador. Cualquier persona puede crear una cuenta en segundos, sin necesidad de SIM, sin CURP y sin verificación
+conyuntural con operadores telefónicos.
 
 > Si Signal/WhatsApp te dicen _"necesitas un número de teléfono"_, Glance Chat te dice _"elige un nombre de usuario"_.
 
@@ -23,11 +30,13 @@ La consecuencia práctica es clara: **una parte de la población queda excluida 
 ## ✨ Características
 
 - **Registro con nombre de usuario único** (5–25 caracteres, letras/números/guión bajo).
-- **Public ID** generado automáticamente al registrarse — un identificador corto de 8 caracteres (ej. `4A-7X-9M-2D`) que puedes compartir para que otras personas te agreguen sin revelar tu username.
+- **Public ID** generado automáticamente al registrarse — un identificador corto de 8 caracteres (ej. `4A-7X-9M-2D`) que
+  puedes compartir para que otras personas te agreguen sin revelar tu username.
 - **Mensajería en tiempo real** vía WebSocket (STOMP) entre dos usuarios.
 - **Conversaciones 1-a-1** con persistencia de historial en MongoDB.
 - **Paginación por cursor** del historial de mensajes (`before` + `limit`), inmune a inserciones en vivo.
-- **Subida de archivos multimedia** mediante URLs prefirmadas de S3 (avatares y archivos de chat) — el binario **nunca** pasa por el backend.
+- **Subida de archivos multimedia** mediante URLs prefirmadas de S3 (avatares y archivos de chat) — el binario **nunca**
+  pasa por el backend.
 - **Doble factor de autenticación (2FA)** con TOTP (compatible con Google Authenticator, Authy, 1Password, etc.).
 - **Código OTP por correo electrónico** para verificación.
 - **Device Authorization Flow** (estilo OAuth device code) para autorizar nuevos dispositivos.
@@ -42,7 +51,7 @@ La consecuencia práctica es clara: **una parte de la población queda excluida 
 ## 🧱 Stack tecnológico
 
 | Capa                      | Tecnología                                               |
-| ------------------------- | -------------------------------------------------------- |
+|---------------------------|----------------------------------------------------------|
 | Lenguaje / framework      | Java 25 + Spring Boot 4.0.6 (WAR)                        |
 | Persistencia              | MongoDB (Spring Data MongoDB)                            |
 | Mensajería en tiempo real | WebSocket + STOMP                                        |
@@ -89,7 +98,7 @@ src/main/java/alberto/cruz/mtz/glance/chat/backend/
 ## 🔐 Modelo de datos (MongoDB)
 
 | Colección       | Propósito                                                                             |
-| --------------- | ------------------------------------------------------------------------------------- |
+|-----------------|---------------------------------------------------------------------------------------|
 | `users`         | Usuarios, perfil, estado, flag de 2FA, publicId, secret de TOTP                       |
 | `conversations` | Una conversación por par de usuarios; guarda el último mensaje para la lista de chats |
 | `messages`      | Mensajes persistidos; índice compuesto `(conversation_id, sent_at DESC)`              |
@@ -101,10 +110,11 @@ src/main/java/alberto/cruz/mtz/glance/chat/backend/
 
 ## 🌐 Endpoints REST (resumen)
 
-> La documentación completa, con ejemplos de request/response, está disponible en Swagger UI cuando el servidor está corriendo: <http://localhost:8080/swagger-ui.html>
+> La documentación completa, con ejemplos de request/response, está disponible en Swagger UI cuando el servidor está
+> corriendo: <http://localhost:8080/swagger-ui.html>
 
 | Método | Endpoint                         | Descripción                                            |
-| ------ | -------------------------------- | ------------------------------------------------------ |
+|--------|----------------------------------|--------------------------------------------------------|
 | `POST` | `/api/auth/signup`               | Registrar usuario nuevo                                |
 | `POST` | `/api/auth/login`                | Iniciar sesión                                         |
 | `POST` | `/api/auth/devices/request-code` | Solicitar device code (flujo estilo OAuth device flow) |
@@ -144,9 +154,11 @@ Levanta el backend **y** una instancia de MongoDB ya configurada:
 docker compose up --build
 ```
 
-El servicio queda expuesto en <http://localhost:8080>. La UI de Swagger estará disponible en <http://localhost:8080/swagger-ui.html>.
+El servicio queda expuesto en <http://localhost:8080>. La UI de Swagger estará disponible
+en <http://localhost:8080/swagger-ui.html>.
 
-> **Antes de subir a producción**, edita `docker-compose.yml` y reemplaza las credenciales y secretos por valores seguros. Las claves que vienen por defecto son únicamente para desarrollo local.
+> **Antes de subir a producción**, edita `docker-compose.yml` y reemplaza las credenciales y secretos por valores
+> seguros. Las claves que vienen por defecto son únicamente para desarrollo local.
 
 ### Opción 2 — Sin Docker
 
@@ -174,7 +186,7 @@ export MAIL_PASSWORD=tu-password
 El backend se configura casi enteramente desde variables de entorno, lo que lo hace 12-factor friendly:
 
 | Variable                  | Default                       | Descripción                                         |
-| ------------------------- | ----------------------------- | --------------------------------------------------- |
+|---------------------------|-------------------------------|-----------------------------------------------------|
 | `MONGO_HOST`              | `localhost`                   | Host de MongoDB                                     |
 | `MONGO_PORT`              | `27017`                       | Puerto de MongoDB                                   |
 | `MONGO_USERNAME`          | `root`                        | Usuario de MongoDB                                  |
@@ -196,5 +208,3 @@ El backend se configura casi enteramente desde variables de entorno, lo que lo h
 | `AWS_S3_PUBLIC_URL`       | —                             | CDN pública de avatares                             |
 | `AWS_S3_PUBLIC_URL_CHAT`  | —                             | CDN pública de archivos de chat                     |
 | `ERROR_URL`               | `http://localhost:8080/error` | URL base para los `type` de ProblemDetail           |
-
-> En producción, **Cloudflare R2** funciona perfecto: solo cambia los defaults a tus URLs R2. Para desarrollo local, **MinIO** es un drop-in replacement.
